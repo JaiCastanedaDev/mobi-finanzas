@@ -1,0 +1,39 @@
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+export function todayISO(now: Date = new Date()): string {
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function addDaysISO(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return todayISO(new Date(y, m - 1, d + days));
+}
+
+export function yesterdayOf(iso: string): string {
+  return addDaysISO(iso, -1);
+}
+
+export function monthOf(iso: string): string {
+  return iso.slice(0, 7);
+}
+
+export function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number);
+  const dt = new Date(y, m - 1 + delta, 1);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function lastNMonths(n: number, today: string): string[] {
+  const current = monthOf(today);
+  const out: string[] = [];
+  for (let i = n - 1; i >= 0; i--) out.push(shiftMonth(current, -i));
+  return out;
+}
+
+export function monthLabel(month: string): string {
+  const [y, m] = month.split('-').map(Number);
+  return `${MESES[m - 1]} ${y}`;
+}
