@@ -3,7 +3,7 @@ import { eq, isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { CategoryGrid } from '../../components/CategoryGrid';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
@@ -86,7 +86,12 @@ export default function DetalleMovimiento() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-bg p-4 dark:bg-bg-dark" contentContainerClassName="pb-12">
+    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <ScrollView
+      className="flex-1 bg-bg p-4 dark:bg-bg-dark"
+      contentContainerClassName="pb-12"
+      keyboardShouldPersistTaps="handled"
+    >
       <Text className="mb-3 text-center text-xs font-medium text-sub dark:text-sub-dark">
         {tx.kind === 'gasto' ? 'Gasto' : tx.kind === 'ingreso' ? 'Ingreso' : 'Transferencia'} · el tipo no se puede cambiar
       </Text>
@@ -135,5 +140,6 @@ export default function DetalleMovimiento() {
       <View className="h-3" />
       <Button label="Borrar movimiento" variant="danger" onPress={onDelete} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

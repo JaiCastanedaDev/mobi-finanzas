@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { Button } from '../components/ui/Button';
 import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
@@ -45,7 +45,12 @@ export default function Onboarding() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-bg p-6 dark:bg-bg-dark" contentContainerClassName="pb-12">
+    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <ScrollView
+      className="flex-1 bg-bg p-6 dark:bg-bg-dark"
+      contentContainerClassName="pb-12"
+      keyboardShouldPersistTaps="handled"
+    >
       <Text className="mb-1 mt-10 text-3xl font-bold text-ink dark:text-ink-dark">¡Hola! 👋</Text>
       <Text className="mb-6 text-sm text-sub dark:text-sub-dark">Crea tu primera cuenta para empezar a registrar.</Text>
 
@@ -68,5 +73,6 @@ export default function Onboarding() {
       {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
       <Button label="Empezar" onPress={onStart} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -3,7 +3,7 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '../../components/CategoryGrid';
 import { Button } from '../../components/ui/Button';
@@ -85,10 +85,15 @@ export default function NuevoMovimiento() {
   const cuentaLabel = kind === 'ingreso' ? 'Cuenta destino' : kind === 'transferencia' ? 'Cuenta origen' : 'Cuenta';
 
   return (
+    <KeyboardAvoidingView
+      className="flex-1"
+      style={{ paddingTop: insets.top }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <ScrollView
       className="flex-1 bg-bg dark:bg-bg-dark"
-      style={{ paddingTop: insets.top }}
       contentContainerClassName="px-4 pb-12 pt-[18px]"
+      keyboardShouldPersistTaps="handled"
     >
       <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
       <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">Nuevo movimiento</Text>
@@ -185,5 +190,6 @@ export default function NuevoMovimiento() {
       <View className="h-3" />
       <Button label="Hoy no gasté 🙌" variant="ghost" onPress={onNoSpend} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

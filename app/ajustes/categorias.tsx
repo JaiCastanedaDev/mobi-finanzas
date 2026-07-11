@@ -2,7 +2,7 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { icons } from '../../lib/iconMap';
 import { useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
@@ -39,7 +39,7 @@ export default function Categorias() {
   }
 
   return (
-    <View className="flex-1 bg-bg p-4 dark:bg-bg-dark">
+    <KeyboardAvoidingView className="flex-1 bg-bg p-4 dark:bg-bg-dark" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <FlatList
         data={cats ?? []}
         keyExtractor={(c) => String(c.id)}
@@ -86,6 +86,6 @@ export default function Categorias() {
           )
         }
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

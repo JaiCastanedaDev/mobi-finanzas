@@ -2,7 +2,7 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, FlatList, Modal, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
@@ -103,7 +103,10 @@ export default function Cuentas() {
       />
 
       <Modal visible={modalOpen} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/45">
+        <KeyboardAvoidingView
+          className="flex-1 justify-end bg-black/45"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View className="rounded-t-sheet bg-bg px-4 pb-6 pt-[18px] dark:bg-bg-dark">
             <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
             <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">Nueva cuenta</Text>
@@ -121,7 +124,7 @@ export default function Cuentas() {
               <Button className="flex-1" label="Crear" onPress={onCreate} />
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
