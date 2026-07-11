@@ -39,9 +39,10 @@ export default function Onboarding() {
       return;
     }
     setPrefs({ reminderHour: hour, reminderMinute: 0 });
-    const granted = await requestNotificationPermission();
-    if (granted) await rescheduleReminders({ loggedToday: false, streak: 0 });
     router.replace('/(tabs)');
+    requestNotificationPermission()
+      .then((granted) => (granted ? rescheduleReminders({ loggedToday: false, streak: 0 }) : undefined))
+      .catch(() => {});
   }
 
   return (
