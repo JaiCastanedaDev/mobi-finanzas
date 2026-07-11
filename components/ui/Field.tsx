@@ -1,4 +1,5 @@
 import { Text, TextInput, View } from 'react-native';
+import { useTheme } from '../../lib/theme';
 
 type Props = {
   label: string;
@@ -10,17 +11,19 @@ type Props = {
 };
 
 export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', error }: Props) {
+  const t = useTheme();
   return (
     <View className="mb-3">
-      <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">{label}</Text>
+      <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor={t.textSub}
         keyboardType={keyboardType}
-        className="rounded-xl border border-neutral-300 px-3 py-3 text-base text-neutral-900 dark:border-neutral-700 dark:text-white"
+        className="rounded-field border border-line bg-card px-[13px] py-3 text-[13px] font-medium text-ink dark:border-line-dark dark:bg-card-dark dark:text-ink-dark"
       />
-      {error ? <Text className="mt-1 text-xs text-red-500">{error}</Text> : null}
+      {error ? <Text className="mt-1 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
     </View>
   );
 }

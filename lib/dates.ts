@@ -37,3 +37,10 @@ export function monthLabel(month: string): string {
   const [y, m] = month.split('-').map(Number);
   return `${MESES[m - 1]} ${y}`;
 }
+
+export function dayLabel(iso: string, today: string): string {
+  if (iso === today) return 'Hoy';
+  if (iso === addDaysISO(today, -1)) return 'Ayer';
+  const [, m, d] = iso.split('-').map(Number);
+  return `${d} ${MESES[m - 1]}`;
+}

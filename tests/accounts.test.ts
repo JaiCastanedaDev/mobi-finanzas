@@ -3,6 +3,7 @@ import { isNull } from 'drizzle-orm';
 import { accounts, transactions } from '../db/schema';
 import { createAccount, removeAccount, updateAccount } from '../db/repos/accounts';
 import { createCategory } from '../db/repos/categories';
+import { archiveGoal, createGoal } from '../db/repos/goals';
 import { createTestDb } from './helpers/testDb';
 
 describe('accounts repo', () => {
@@ -27,6 +28,15 @@ describe('accounts repo', () => {
     expect(removeAccount(db, conMov)).toBe('archived');
     expect(db.select().from(accounts).where(isNull(accounts.archivedAt)).all()).toHaveLength(0);
     expect(db.select().from(accounts).all()).toHaveLength(1);
+  });
+
+  it('removeAccount rechaza cuenta ligada a una meta activa, permite tras archivarla', () => {
+    const db = createTestDb();
+    const accId = createAccount(db, { name: 'Ahorro viaje', type: 'ahorro', initialBalance: 0 });
+    const goalId = createGoal(db, { name: 'Viaje', targetAmount: 1000000, accountId: accId });
+    expect(() => removeAccount(db, accId)).toThrow(/ligada a la meta "Viaje"/);
+    archiveGoal(db, goalId);
+    expect(removeAccount(db, accId)).toBe('deleted');
   });
 
   it('updateAccount cambia nombre y saldo inicial', () => {

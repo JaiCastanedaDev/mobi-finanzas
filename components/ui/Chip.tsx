@@ -1,17 +1,26 @@
 import { Pressable, Text, View } from 'react-native';
+import { useTheme } from '../../lib/theme';
 
 type Props = { label: string; selected: boolean; onPress: () => void; color?: string };
 
 export function Chip({ label, selected, onPress, color }: Props) {
+  const t = useTheme();
+  // Seleccionado: relleno con el color de acento (o primario); sin seleccionar: superficie de tarjeta.
+  const accent = color ?? t.primary;
   return (
     <Pressable
       onPress={onPress}
-      className={`mb-2 mr-2 flex-row items-center rounded-full border px-3 py-2 ${
-        selected ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950' : 'border-neutral-300 dark:border-neutral-700'
-      }`}
+      className="mb-2 mr-2 flex-row items-center rounded-full px-[13px] py-2"
+      style={{
+        backgroundColor: selected ? accent : t.card,
+        borderWidth: 1,
+        borderColor: selected ? accent : t.border,
+      }}
     >
-      {color ? <View className="mr-1.5 h-3 w-3 rounded-full" style={{ backgroundColor: color }} /> : null}
-      <Text className={selected ? 'font-semibold text-emerald-700 dark:text-emerald-400' : 'text-neutral-700 dark:text-neutral-300'}>{label}</Text>
+      {color && !selected ? <View className="mr-1.5 h-[7px] w-[7px] rounded-full" style={{ backgroundColor: color }} /> : null}
+      <Text className="text-[11.5px] font-semibold" style={{ color: selected ? t.onPrimary : t.text }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

@@ -45,12 +45,12 @@ export default function Onboarding() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white p-6 dark:bg-neutral-950" contentContainerClassName="pb-12">
-      <Text className="mb-1 mt-10 text-3xl font-bold text-neutral-900 dark:text-white">¡Hola! 👋</Text>
-      <Text className="mb-6 text-neutral-500 dark:text-neutral-400">Crea tu primera cuenta para empezar a registrar.</Text>
+    <ScrollView className="flex-1 bg-bg p-6 dark:bg-bg-dark" contentContainerClassName="pb-12">
+      <Text className="mb-1 mt-10 text-3xl font-bold text-ink dark:text-ink-dark">¡Hola! 👋</Text>
+      <Text className="mb-6 text-sm text-sub dark:text-sub-dark">Crea tu primera cuenta para empezar a registrar.</Text>
 
       <Field label="Nombre de la cuenta" value={name} onChangeText={setName} placeholder="Ej: Bancolombia, Efectivo…" />
-      <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Tipo</Text>
+      <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Tipo</Text>
       <View className="mb-3 flex-row flex-wrap">
         {TIPOS.map((t) => (
           <Chip key={t.value} label={t.label} selected={type === t.value} onPress={() => setType(t.value)} />
@@ -58,14 +58,14 @@ export default function Onboarding() {
       </View>
       <Field label="Saldo actual (COP)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
 
-      <Text className="mb-1 mt-4 text-sm text-neutral-500 dark:text-neutral-400">¿A qué hora te recordamos registrar?</Text>
+      <Text className="mb-1.5 mt-4 text-[11px] font-medium text-sub dark:text-sub-dark">¿A qué hora te recordamos registrar?</Text>
       <View className="mb-6 flex-row flex-wrap">
         {HORAS.map((h) => (
           <Chip key={h} label={`${h}:00`} selected={hour === h} onPress={() => setHour(h)} />
         ))}
       </View>
 
-      {error ? <Text className="mb-3 text-red-500">{error}</Text> : null}
+      {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
       <Button label="Empezar" onPress={onStart} />
     </ScrollView>
   );

@@ -86,13 +86,13 @@ export default function DetalleMovimiento() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white p-4 dark:bg-neutral-950" contentContainerClassName="pb-12">
-      <Text className="mb-3 text-center text-sm text-neutral-500">
+    <ScrollView className="flex-1 bg-bg p-4 dark:bg-bg-dark" contentContainerClassName="pb-12">
+      <Text className="mb-3 text-center text-xs font-medium text-sub dark:text-sub-dark">
         {tx.kind === 'gasto' ? 'Gasto' : tx.kind === 'ingreso' ? 'Ingreso' : 'Transferencia'} · el tipo no se puede cambiar
       </Text>
       <Field label="Monto (COP)" value={amountText} onChangeText={setAmountText} keyboardType="numeric" />
 
-      <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Fecha</Text>
+      <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Fecha</Text>
       <Chip label={`📅 ${date}`} selected onPress={() => setShowPicker(true)} />
       {showPicker ? (
         <DateTimePicker
@@ -106,7 +106,7 @@ export default function DetalleMovimiento() {
         />
       ) : null}
 
-      <Text className="mb-1 mt-3 text-sm text-neutral-500 dark:text-neutral-400">{tx.kind === 'ingreso' ? 'Cuenta destino' : 'Cuenta origen'}</Text>
+      <Text className="mb-1.5 mt-3 text-[11px] font-medium text-sub dark:text-sub-dark">{tx.kind === 'ingreso' ? 'Cuenta destino' : 'Cuenta origen'}</Text>
       <View className="mb-3 flex-row flex-wrap">
         {(accs ?? []).map((a) => (
           <Chip key={a.id} label={a.name} selected={accountId === a.id} onPress={() => setAccountId(a.id)} />
@@ -115,7 +115,7 @@ export default function DetalleMovimiento() {
 
       {tx.kind === 'transferencia' ? (
         <>
-          <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Cuenta destino</Text>
+          <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Cuenta destino</Text>
           <View className="mb-3 flex-row flex-wrap">
             {(accs ?? []).map((a) => (
               <Chip key={a.id} label={a.name} selected={toAccountId === a.id} onPress={() => setToAccountId(a.id)} />
@@ -124,13 +124,13 @@ export default function DetalleMovimiento() {
         </>
       ) : (
         <>
-          <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Categoría</Text>
+          <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Categoría</Text>
           <CategoryGrid kind={tx.kind as 'gasto' | 'ingreso'} selectedId={categoryId} onSelect={setCategoryId} />
         </>
       )}
 
       <Field label="Nota (opcional)" value={note} onChangeText={setNote} />
-      {error ? <Text className="mb-3 text-red-500">{error}</Text> : null}
+      {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
       <Button label="Guardar cambios" onPress={onSave} />
       <View className="h-3" />
       <Button label="Borrar movimiento" variant="danger" onPress={onDelete} />

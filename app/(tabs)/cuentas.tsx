@@ -1,7 +1,9 @@
 import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
+import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, FlatList, Modal, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
@@ -10,6 +12,7 @@ import { accounts, transactions } from '../../db/schema';
 import { createAccount, removeAccount } from '../../db/repos/accounts';
 import { accountBalance } from '../../lib/calc';
 import { formatCOP, parseAmount } from '../../lib/money';
+import { useTheme } from '../../lib/theme';
 import { accountSchema } from '../../lib/validation';
 
 const TIPOS = [
@@ -19,6 +22,8 @@ const TIPOS = [
 ] as const;
 
 export default function Cuentas() {
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: accs } = useLiveQuery(db.select().from(accounts).where(isNull(accounts.archivedAt)));
   const { data: txs } = useLiveQuery(db.select().from(transactions));
   const [modalOpen, setModalOpen] = useState(false);
@@ -48,48 +53,73 @@ export default function Cuentas() {
   function onRemove(id: number, accName: string) {
     Alert.alert(`Eliminar "${accName}"`, 'Si tiene movimientos se archivará para conservar el historial.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => removeAccount(db, id) },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => {
+          try {
+            removeAccount(db, id);
+          } catch (e) {
+            Alert.alert('No se puede eliminar', e instanceof Error ? e.message : 'Error');
+          }
+        },
+      },
     ]);
   }
 
   return (
-    <View className="flex-1 bg-neutral-100 p-4 dark:bg-neutral-950">
+    <View className="flex-1 bg-bg dark:bg-bg-dark" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center justify-between px-4 pb-1 pt-3.5">
+        <Text className="text-xl font-bold text-ink dark:text-ink-dark">Cuentas</Text>
+        <Pressable onPress={() => setModalOpen(true)} className="rounded-full bg-streakbg2 px-3 py-[7px] dark:bg-streakbg2-dark">
+          <Text className="text-xs font-semibold text-primary dark:text-primary-dark">+ Nueva</Text>
+        </Pressable>
+      </View>
+
       <FlatList
         data={accs ?? []}
         keyExtractor={(a) => String(a.id)}
-        contentContainerClassName="pb-28"
+        contentContainerClassName="gap-2.5 px-4 pb-28 pt-2.5"
         renderItem={({ item: a }) => {
           const bal = accountBalance(a, txs ?? []);
           return (
-            <Pressable onLongPress={() => onRemove(a.id, a.name)} className="mb-2 rounded-2xl bg-white p-4 dark:bg-neutral-900">
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="font-medium text-neutral-900 dark:text-white">{a.name}</Text>
-                  <Text className="text-xs capitalize text-neutral-500">{a.type}</Text>
-                </View>
-                <Text className={`text-lg font-semibold ${bal < 0 ? 'text-red-500' : 'text-neutral-900 dark:text-white'}`}>{formatCOP(bal)}</Text>
+            <Pressable
+              onLongPress={() => onRemove(a.id, a.name)}
+              className="flex-row items-center rounded-row border border-line bg-card px-[15px] py-3.5 dark:border-line-dark dark:bg-card-dark"
+            >
+              <View className="min-w-0 flex-1">
+                <Text className="text-[13.5px] font-semibold text-ink dark:text-ink-dark">{a.name}</Text>
+                <Text className="mt-0.5 text-[10.5px] font-medium capitalize text-sub dark:text-sub-dark">{a.type}</Text>
               </View>
+              <Text className="text-[15px] font-bold" style={{ color: bal < 0 ? t.neg : t.text }}>
+                {formatCOP(bal)}
+              </Text>
+              <Pressable onPress={() => onRemove(a.id, a.name)} hitSlop={8} className="ml-3.5">
+                <Trash2 size={15} color={t.textSub} />
+              </Pressable>
             </Pressable>
           );
         }}
-        ListFooterComponent={<Button label="+ Nueva cuenta" variant="ghost" onPress={() => setModalOpen(true)} />}
       />
 
       <Modal visible={modalOpen} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="rounded-t-3xl bg-white p-6 dark:bg-neutral-900">
-            <Text className="mb-4 text-lg font-bold text-neutral-900 dark:text-white">Nueva cuenta</Text>
-            <Field label="Nombre" value={name} onChangeText={setName} />
-            <View className="mb-3 flex-row">
-              {TIPOS.map((t) => (
-                <Chip key={t.value} label={t.label} selected={type === t.value} onPress={() => setType(t.value)} />
+        <View className="flex-1 justify-end bg-black/45">
+          <View className="rounded-t-sheet bg-bg px-4 pb-6 pt-[18px] dark:bg-bg-dark">
+            <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
+            <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">Nueva cuenta</Text>
+            <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ej. Nequi" />
+            <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Tipo</Text>
+            <View className="mb-2 flex-row">
+              {TIPOS.map((tp) => (
+                <Chip key={tp.value} label={tp.label} selected={type === tp.value} onPress={() => setType(tp.value)} />
               ))}
             </View>
             <Field label="Saldo inicial (COP)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
-            {error ? <Text className="mb-2 text-red-500">{error}</Text> : null}
-            <Button label="Crear" onPress={onCreate} />
-            <View className="h-2" />
-            <Button label="Cancelar" variant="ghost" onPress={() => setModalOpen(false)} />
+            {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
+            <View className="mt-1 flex-row gap-2.5">
+              <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => setModalOpen(false)} />
+              <Button className="flex-1" label="Crear" onPress={onCreate} />
+            </View>
           </View>
         </View>
       </Modal>

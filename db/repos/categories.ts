@@ -4,21 +4,23 @@ import type { DB } from '../types';
 
 type CategoryInput = { name: string; kind: 'gasto' | 'ingreso'; icon: string; color: string };
 
+// Paleta categórica cálida validada (banda de luminosidad, croma, separación CVD
+// y contraste sobre superficie de tarjeta en modo claro y oscuro).
 export const SEED_CATEGORIES: CategoryInput[] = [
-  { name: 'Mercado', kind: 'gasto', icon: 'ShoppingCart', color: '#ef4444' },
-  { name: 'Transporte', kind: 'gasto', icon: 'Bus', color: '#f97316' },
-  { name: 'Arriendo', kind: 'gasto', icon: 'Home', color: '#eab308' },
-  { name: 'Comida fuera', kind: 'gasto', icon: 'UtensilsCrossed', color: '#22c55e' },
-  { name: 'Servicios', kind: 'gasto', icon: 'Lightbulb', color: '#14b8a6' },
-  { name: 'Salud', kind: 'gasto', icon: 'HeartPulse', color: '#3b82f6' },
-  { name: 'Ocio', kind: 'gasto', icon: 'Gamepad2', color: '#8b5cf6' },
-  { name: 'Ropa', kind: 'gasto', icon: 'Shirt', color: '#ec4899' },
-  { name: 'Educación', kind: 'gasto', icon: 'GraduationCap', color: '#6366f1' },
-  { name: 'Otros gastos', kind: 'gasto', icon: 'CircleEllipsis', color: '#78716c' },
-  { name: 'Salario', kind: 'ingreso', icon: 'Briefcase', color: '#16a34a' },
-  { name: 'Ventas', kind: 'ingreso', icon: 'HandCoins', color: '#0ea5e9' },
-  { name: 'Regalos', kind: 'ingreso', icon: 'Gift', color: '#d946ef' },
-  { name: 'Otros ingresos', kind: 'ingreso', icon: 'CirclePlus', color: '#84cc16' },
+  { name: 'Mercado', kind: 'gasto', icon: 'ShoppingCart', color: '#267b4c' },
+  { name: 'Transporte', kind: 'gasto', icon: 'Bus', color: '#df6c32' },
+  { name: 'Arriendo', kind: 'gasto', icon: 'Home', color: '#2f7fbe' },
+  { name: 'Comida fuera', kind: 'gasto', icon: 'UtensilsCrossed', color: '#ab8b3d' },
+  { name: 'Servicios', kind: 'gasto', icon: 'Lightbulb', color: '#7d6bc4' },
+  { name: 'Salud', kind: 'gasto', icon: 'HeartPulse', color: '#0f9f88' },
+  { name: 'Ocio', kind: 'gasto', icon: 'Gamepad2', color: '#c46761' },
+  { name: 'Ropa', kind: 'gasto', icon: 'Shirt', color: '#6b7f2e' },
+  { name: 'Educación', kind: 'gasto', icon: 'GraduationCap', color: '#a3599a' },
+  { name: 'Otros gastos', kind: 'gasto', icon: 'CircleEllipsis', color: '#b0752b' },
+  { name: 'Salario', kind: 'ingreso', icon: 'Briefcase', color: '#267b4c' },
+  { name: 'Ventas', kind: 'ingreso', icon: 'HandCoins', color: '#2f7fbe' },
+  { name: 'Regalos', kind: 'ingreso', icon: 'Gift', color: '#a3599a' },
+  { name: 'Otros ingresos', kind: 'ingreso', icon: 'CirclePlus', color: '#ab8b3d' },
 ];
 
 export function seedIfEmpty(db: DB): void {

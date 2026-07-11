@@ -1,5 +1,5 @@
 import { and, eq, isNull, or } from 'drizzle-orm';
-import { accounts, transactions } from '../schema';
+import { accounts, savingsGoals, transactions } from '../schema';
 import type { DB } from '../types';
 
 type AccountInput = { name: string; type: 'debito' | 'ahorro' | 'efectivo'; initialBalance: number };
@@ -34,6 +34,15 @@ export function updateAccount(db: DB, id: number, patch: Partial<AccountInput>):
 }
 
 export function removeAccount(db: DB, id: number): 'deleted' | 'archived' {
+  const linked = db
+    .select({ name: savingsGoals.name })
+    .from(savingsGoals)
+    .where(and(eq(savingsGoals.accountId, id), isNull(savingsGoals.archivedAt)))
+    .limit(1)
+    .all();
+  if (linked.length > 0) {
+    throw new Error(`La cuenta está ligada a la meta "${linked[0].name}". Elimina o archiva esa meta primero.`);
+  }
   const used = db
     .select({ id: transactions.id })
     .from(transactions)
@@ -41,6 +50,8 @@ export function removeAccount(db: DB, id: number): 'deleted' | 'archived' {
     .limit(1)
     .all();
   if (used.length === 0) {
+    // Las metas archivadas pueden seguir apuntando a la cuenta; se desligan para no violar la FK.
+    db.update(savingsGoals).set({ accountId: null }).where(eq(savingsGoals.accountId, id)).run();
     db.delete(accounts).where(eq(accounts.id, id)).run();
     return 'deleted';
   }

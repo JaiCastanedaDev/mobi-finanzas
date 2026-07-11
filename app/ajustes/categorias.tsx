@@ -10,7 +10,7 @@ import { db } from '../../db/client';
 import { categories } from '../../db/schema';
 import { createCategory, removeCategory } from '../../db/repos/categories';
 
-const COLORES = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLORES = ['#267b4c', '#df6c32', '#2f7fbe', '#ab8b3d', '#7d6bc4', '#0f9f88', '#c46761', '#6b7f2e', '#a3599a', '#b0752b'];
 
 export default function Categorias() {
   const { data: cats } = useLiveQuery(db.select().from(categories).where(isNull(categories.archivedAt)));
@@ -39,25 +39,28 @@ export default function Categorias() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-100 p-4 dark:bg-neutral-950">
+    <View className="flex-1 bg-bg p-4 dark:bg-bg-dark">
       <FlatList
         data={cats ?? []}
         keyExtractor={(c) => String(c.id)}
         renderItem={({ item: c }) => {
           const Icon = icons[c.icon as keyof typeof icons] ?? icons.Circle;
           return (
-            <Pressable onLongPress={() => onRemove(c.id, c.name)} className="mb-2 flex-row items-center rounded-2xl bg-white p-3 dark:bg-neutral-900">
-              <View className="mr-3 h-9 w-9 items-center justify-center rounded-full" style={{ backgroundColor: `${c.color}33` }}>
-                <Icon color={c.color} size={18} />
+            <Pressable
+              onLongPress={() => onRemove(c.id, c.name)}
+              className="mb-2 flex-row items-center rounded-row border border-line bg-card p-3 dark:border-line-dark dark:bg-card-dark"
+            >
+              <View className="mr-3 h-9 w-9 items-center justify-center rounded-[11px]" style={{ backgroundColor: `${c.color}33` }}>
+                <Icon color={c.color} size={17} />
               </View>
-              <Text className="flex-1 text-neutral-900 dark:text-white">{c.name}</Text>
-              <Text className="text-xs capitalize text-neutral-500">{c.kind}</Text>
+              <Text className="flex-1 text-[13px] font-semibold text-ink dark:text-ink-dark">{c.name}</Text>
+              <Text className="text-[10.5px] font-medium capitalize text-sub dark:text-sub-dark">{c.kind}</Text>
             </Pressable>
           );
         }}
         ListFooterComponent={
           formOpen ? (
-            <View className="rounded-2xl bg-white p-4 dark:bg-neutral-900">
+            <View className="rounded-card border border-line bg-card p-4 dark:border-line-dark dark:bg-card-dark">
               <Field label="Nombre" value={name} onChangeText={setName} />
               <View className="mb-3 flex-row">
                 <Chip label="Gasto" selected={kind === 'gasto'} onPress={() => setKind('gasto')} />
@@ -68,12 +71,12 @@ export default function Categorias() {
                   <Pressable
                     key={c}
                     onPress={() => setColor(c)}
-                    className={`mr-2 h-8 w-8 rounded-full ${color === c ? 'border-2 border-neutral-900 dark:border-white' : ''}`}
+                    className={`mb-2 mr-2 h-8 w-8 rounded-full ${color === c ? 'border-2 border-ink dark:border-ink-dark' : ''}`}
                     style={{ backgroundColor: c }}
                   />
                 ))}
               </View>
-              {error ? <Text className="mb-2 text-red-500">{error}</Text> : null}
+              {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
               <Button label="Crear" onPress={onCreate} />
               <View className="h-2" />
               <Button label="Cancelar" variant="ghost" onPress={() => setFormOpen(false)} />

@@ -3,7 +3,8 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '../../components/CategoryGrid';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
@@ -14,21 +15,26 @@ import { displayStreak, logToday } from '../../db/repos/streak';
 import { createTransaction } from '../../db/repos/transactions';
 import { addDaysISO, todayISO } from '../../lib/dates';
 import { parseAmount } from '../../lib/money';
+import { useTheme } from '../../lib/theme';
 import { rescheduleReminders } from '../../lib/notifications';
 import { makeTransactionSchema } from '../../lib/validation';
 
 const KINDS = [
   { value: 'gasto', label: 'Gasto' },
   { value: 'ingreso', label: 'Ingreso' },
-  { value: 'transferencia', label: 'Transferencia' },
+  { value: 'transferencia', label: 'Transf.' },
 ] as const;
+
+const groupDigits = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 export default function NuevoMovimiento() {
   const today = todayISO();
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: accs } = useLiveQuery(db.select().from(accounts).where(isNull(accounts.archivedAt)));
 
   const [kind, setKind] = useState<'gasto' | 'ingreso' | 'transferencia'>('gasto');
-  const [amountText, setAmountText] = useState('');
+  const [amountDigits, setAmountDigits] = useState('');
   const [date, setDate] = useState(today);
   const [accountId, setAccountId] = useState<number | null>(null);
   const [toAccountId, setToAccountId] = useState<number | null>(null);
@@ -51,7 +57,7 @@ export default function NuevoMovimiento() {
   async function onSave() {
     const candidate = {
       kind,
-      amount: parseAmount(amountText),
+      amount: parseAmount(amountDigits),
       date,
       accountId: accountId ?? undefined,
       toAccountId: toAccountId ?? undefined,
@@ -79,20 +85,58 @@ export default function NuevoMovimiento() {
   const cuentaLabel = kind === 'ingreso' ? 'Cuenta destino' : kind === 'transferencia' ? 'Cuenta origen' : 'Cuenta';
 
   return (
-    <ScrollView className="flex-1 bg-white p-4 dark:bg-neutral-950" contentContainerClassName="pb-12">
-      <View className="mb-4 flex-row">
-        {KINDS.map((k) => (
-          <Chip key={k.value} label={k.label} selected={kind === k.value} onPress={() => { setKind(k.value); setCategoryId(null); }} />
-        ))}
+    <ScrollView
+      className="flex-1 bg-bg dark:bg-bg-dark"
+      style={{ paddingTop: insets.top }}
+      contentContainerClassName="px-4 pb-12 pt-[18px]"
+    >
+      <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
+      <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">Nuevo movimiento</Text>
+
+      {/* Tipo */}
+      <View className="mb-3.5 flex-row rounded-full border border-line bg-card p-1 dark:border-line-dark dark:bg-card-dark">
+        {KINDS.map((k) => {
+          const selected = kind === k.value;
+          return (
+            <Pressable
+              key={k.value}
+              onPress={() => {
+                setKind(k.value);
+                setCategoryId(null);
+              }}
+              className="flex-1 items-center rounded-full py-[9px]"
+              style={{ backgroundColor: selected ? t.primary : 'transparent' }}
+            >
+              <Text className="text-[12.5px] font-semibold" style={{ color: selected ? t.onPrimary : t.textSub }}>
+                {k.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
-      <Field label="Monto (COP)" value={amountText} onChangeText={setAmountText} keyboardType="numeric" placeholder="0" />
+      {/* Monto */}
+      <View className="items-center py-2">
+        <Text className="mb-1 text-[11px] font-medium text-sub dark:text-sub-dark">Monto</Text>
+        <TextInput
+          value={amountDigits ? groupDigits(amountDigits) : ''}
+          onChangeText={(v) => setAmountDigits(v.replace(/\D/g, ''))}
+          placeholder="0"
+          placeholderTextColor={t.textSub}
+          keyboardType="numeric"
+          className="w-full text-center text-[32px] font-bold text-ink dark:text-ink-dark"
+        />
+      </View>
 
-      <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Fecha</Text>
-      <View className="mb-3 flex-row">
+      <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Fecha</Text>
+      <View className="mb-2 flex-row">
         <Chip label="Hoy" selected={date === today} onPress={() => setDate(today)} />
         <Chip label="Ayer" selected={date === addDaysISO(today, -1)} onPress={() => setDate(addDaysISO(today, -1))} />
-        <Chip label={`📅 ${date}`} selected={date !== today && date !== addDaysISO(today, -1)} onPress={() => setShowPicker(true)} />
+        <Chip
+          label={`📅 ${date}`}
+          selected={date !== today && date !== addDaysISO(today, -1)}
+          onPress={() => setShowPicker(true)}
+        />
       </View>
       {showPicker ? (
         <DateTimePicker
@@ -106,8 +150,8 @@ export default function NuevoMovimiento() {
         />
       ) : null}
 
-      <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">{cuentaLabel}</Text>
-      <View className="mb-3 flex-row flex-wrap">
+      <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">{cuentaLabel}</Text>
+      <View className="mb-2 flex-row flex-wrap">
         {(accs ?? []).map((a) => (
           <Chip key={a.id} label={a.name} selected={accountId === a.id} onPress={() => setAccountId(a.id)} />
         ))}
@@ -115,8 +159,8 @@ export default function NuevoMovimiento() {
 
       {kind === 'transferencia' ? (
         <>
-          <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Cuenta destino</Text>
-          <View className="mb-3 flex-row flex-wrap">
+          <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Cuenta destino</Text>
+          <View className="mb-2 flex-row flex-wrap">
             {(accs ?? []).map((a) => (
               <Chip key={a.id} label={a.name} selected={toAccountId === a.id} onPress={() => setToAccountId(a.id)} />
             ))}
@@ -124,15 +168,20 @@ export default function NuevoMovimiento() {
         </>
       ) : (
         <>
-          <Text className="mb-1 text-sm text-neutral-500 dark:text-neutral-400">Categoría</Text>
+          <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Categoría</Text>
           <CategoryGrid kind={kind} selectedId={categoryId} onSelect={setCategoryId} />
         </>
       )}
 
-      <Field label="Nota (opcional)" value={note} onChangeText={setNote} placeholder="Ej: almuerzo con Ana" />
+      <View className="mt-1">
+        <Field label="Nota (opcional)" value={note} onChangeText={setNote} placeholder="Ej. Almuerzo con el equipo" />
+      </View>
 
-      {error ? <Text className="mb-3 text-red-500">{error}</Text> : null}
-      <Button label="Guardar" onPress={onSave} />
+      {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
+      <View className="flex-row gap-2.5">
+        <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => router.back()} />
+        <Button className="flex-1" label="Guardar" onPress={onSave} />
+      </View>
       <View className="h-3" />
       <Button label="Hoy no gasté 🙌" variant="ghost" onPress={onNoSpend} />
     </ScrollView>
