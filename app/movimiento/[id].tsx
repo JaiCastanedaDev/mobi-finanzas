@@ -3,7 +3,7 @@ import { eq, isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { CategoryGrid } from '../../components/CategoryGrid';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
@@ -86,7 +86,7 @@ export default function DetalleMovimiento() {
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView className="flex-1" behavior="padding">
     <ScrollView
       className="flex-1 bg-bg p-4 dark:bg-bg-dark"
       contentContainerClassName="pb-12"

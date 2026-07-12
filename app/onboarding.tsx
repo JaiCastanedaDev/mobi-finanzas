@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { Button } from '../components/ui/Button';
 import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
@@ -46,7 +46,7 @@ export default function Onboarding() {
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView className="flex-1" behavior="padding">
     <ScrollView
       className="flex-1 bg-bg p-6 dark:bg-bg-dark"
       contentContainerClassName="pb-12"

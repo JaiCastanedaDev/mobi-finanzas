@@ -2,8 +2,9 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddButton } from '../../components/ui/AddButton';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
@@ -71,9 +72,7 @@ export default function Cuentas() {
     <View className="flex-1 bg-bg dark:bg-bg-dark" style={{ paddingTop: insets.top }}>
       <View className="flex-row items-center justify-between px-4 pb-1 pt-3.5">
         <Text className="text-xl font-bold text-ink dark:text-ink-dark">Cuentas</Text>
-        <Pressable onPress={() => setModalOpen(true)} className="rounded-full bg-streakbg2 px-3 py-[7px] dark:bg-streakbg2-dark">
-          <Text className="text-xs font-semibold text-primary dark:text-primary-dark">+ Nueva</Text>
-        </Pressable>
+        <AddButton onPress={() => setModalOpen(true)} />
       </View>
 
       <FlatList
@@ -105,7 +104,7 @@ export default function Cuentas() {
       {modalOpen ? (
         <KeyboardAvoidingView
           className="absolute inset-0 justify-end bg-black/45"
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <ScrollView
             className="max-h-full rounded-t-sheet bg-bg dark:bg-bg-dark"

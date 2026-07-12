@@ -2,7 +2,7 @@ import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { icons } from '../../lib/iconMap';
 import { useState } from 'react';
-import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Pressable, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
@@ -39,7 +39,7 @@ export default function Categorias() {
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-bg p-4 dark:bg-bg-dark" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView className="flex-1 bg-bg p-4 dark:bg-bg-dark" behavior="padding">
       <FlatList
         data={cats ?? []}
         keyExtractor={(c) => String(c.id)}
@@ -82,7 +82,7 @@ export default function Categorias() {
               <Button label="Cancelar" variant="ghost" onPress={() => setFormOpen(false)} />
             </View>
           ) : (
-            <Button label="+ Nueva categoría" variant="ghost" onPress={() => setFormOpen(true)} />
+            <Button label="+ Nueva categoría" onPress={() => setFormOpen(true)} />
           )
         }
       />

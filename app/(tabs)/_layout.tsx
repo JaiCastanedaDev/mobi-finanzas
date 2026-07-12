@@ -4,6 +4,7 @@ import type { BottomTabBarProps } from 'expo-router/build/react-navigation/botto
 import { ChartPie, List, PiggyBank, Plus, Wallet } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnimatedPressable } from '../../components/ui/AnimatedPressable';
 import { db } from '../../db/client';
 import { accounts } from '../../db/schema';
 import { useTheme } from '../../lib/theme';
@@ -49,8 +50,9 @@ function MfTabBar({ state, navigation }: BottomTabBarProps) {
     >
       {renderTab('index')}
       {renderTab('movimientos')}
-      <Pressable
+      <AnimatedPressable
         onPress={() => router.push('/movimiento/nuevo')}
+        scaleTo={0.88}
         className="mx-2 -mt-[18px] h-11 w-11 items-center justify-center rounded-full"
         style={{
           backgroundColor: t.primary,
@@ -62,7 +64,7 @@ function MfTabBar({ state, navigation }: BottomTabBarProps) {
         }}
       >
         <Plus color={t.onPrimary} size={24} />
-      </Pressable>
+      </AnimatedPressable>
       {renderTab('cuentas')}
       {renderTab('metas')}
     </View>

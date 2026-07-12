@@ -9,7 +9,7 @@ const light = {
   textSub: '#686357',
   pos: '#267b4c',
   posBg: '#cff2da',
-  neg: '#c46761',
+  neg: '#b04f49',
   primary: '#267b4c',
   primaryShadow: 'rgba(38,123,76,0.4)',
   streakBg: '#fbe7d8',
@@ -19,7 +19,7 @@ const light = {
   amber: '#aa8f44',
   terracotta: '#c4936b',
   neutral: '#d0cec7',
-  tabInactive: '#b0aea7',
+  tabInactive: '#6f6c61',
   onPrimary: '#ffffff',
 };
 
@@ -41,7 +41,7 @@ const dark: Theme = {
   amber: '#b49c5a',
   terracotta: '#cf976a',
   neutral: '#44433b',
-  tabInactive: '#57564e',
+  tabInactive: '#8f8d84',
   onPrimary: '#0a0905',
 };
 
