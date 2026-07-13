@@ -53,8 +53,14 @@ function MfTabBar({ state, navigation }: BottomTabBarProps) {
       <AnimatedPressable
         onPress={() => router.push('/movimiento/nuevo')}
         scaleTo={0.88}
-        className="mx-2 -mt-[18px] h-11 w-11 items-center justify-center rounded-full"
         style={{
+          marginHorizontal: 8,
+          marginTop: -18,
+          height: 44,
+          width: 44,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 22,
           backgroundColor: t.primary,
           shadowColor: t.primary,
           shadowOffset: { width: 0, height: 4 },

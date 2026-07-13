@@ -155,8 +155,8 @@ export default function Metas() {
             </View>
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
-              <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => setCreateOpen(false)} />
-              <Button className="flex-1" label="Crear" onPress={onCreate} />
+              <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setCreateOpen(false)} />
+              <Button style={{ flex: 1 }} label="Crear" onPress={onCreate} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -172,8 +172,8 @@ export default function Metas() {
             <Field label="Monto (COP)" value={abonoText} onChangeText={setAbonoText} keyboardType="numeric" />
             {abonoError ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{abonoError}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
-              <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => setAbonarGoalId(null)} />
-              <Button className="flex-1" label="Abonar" onPress={onAbonar} />
+              <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setAbonarGoalId(null)} />
+              <Button style={{ flex: 1 }} label="Abonar" onPress={onAbonar} />
             </View>
           </View>
         </KeyboardAvoidingView>

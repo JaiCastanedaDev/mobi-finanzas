@@ -123,8 +123,8 @@ export default function Cuentas() {
             <Field label="Saldo inicial (COP)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
-              <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => setModalOpen(false)} />
-              <Button className="flex-1" label="Crear" onPress={onCreate} />
+              <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setModalOpen(false)} />
+              <Button style={{ flex: 1 }} label="Crear" onPress={onCreate} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

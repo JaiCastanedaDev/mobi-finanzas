@@ -1,23 +1,39 @@
-import { Text } from 'react-native';
+import { Text, type StyleProp, type ViewStyle } from 'react-native';
+import { useTheme } from '../../lib/theme';
 import { AnimatedPressable } from './AnimatedPressable';
 
-type Props = { label: string; onPress: () => void; variant?: 'primary' | 'ghost' | 'danger'; disabled?: boolean; className?: string };
+type Props = {
+  label: string;
+  onPress: () => void;
+  variant?: 'primary' | 'ghost' | 'danger';
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+};
 
-export function Button({ label, onPress, variant = 'primary', disabled, className = '' }: Props) {
-  const bg =
-    variant === 'primary'
-      ? 'bg-primary dark:bg-primary-dark'
-      : variant === 'danger'
-        ? 'bg-neg dark:bg-neg-dark'
-        : 'border border-line bg-card dark:border-line-dark dark:bg-card-dark';
-  const txt = variant === 'ghost' ? 'text-sub dark:text-sub-dark' : 'text-onprimary dark:text-onprimary-dark';
+// Estilos inline (no NativeWind): ver comentario en AnimatedPressable.tsx.
+export function Button({ label, onPress, variant = 'primary', disabled, style }: Props) {
+  const t = useTheme();
+  const ghost = variant === 'ghost';
+  const bg = variant === 'primary' ? t.primary : variant === 'danger' ? t.neg : t.card;
   return (
     <AnimatedPressable
       onPress={onPress}
       disabled={disabled}
-      className={`items-center rounded-btn px-4 py-3.5 ${bg} ${disabled ? 'opacity-40' : ''} ${className}`}
+      style={[
+        {
+          alignItems: 'center',
+          borderRadius: 14,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          backgroundColor: bg,
+          borderWidth: ghost ? 1 : 0,
+          borderColor: t.border,
+          opacity: disabled ? 0.4 : 1,
+        },
+        style,
+      ]}
     >
-      <Text className={`text-[13px] font-semibold ${txt}`}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: ghost ? t.textSub : t.onPrimary }}>{label}</Text>
     </AnimatedPressable>
   );
 }

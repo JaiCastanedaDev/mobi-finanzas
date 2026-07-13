@@ -48,8 +48,8 @@ export default function Onboarding() {
   return (
     <KeyboardAvoidingView className="flex-1" behavior="padding">
     <ScrollView
-      className="flex-1 bg-bg p-6 dark:bg-bg-dark"
-      contentContainerClassName="pb-12"
+      className="flex-1 bg-bg dark:bg-bg-dark"
+      contentContainerClassName="p-6 pb-12"
       keyboardShouldPersistTaps="handled"
     >
       <Text className="mb-1 mt-10 text-3xl font-bold text-ink dark:text-ink-dark">¡Hola! 👋</Text>

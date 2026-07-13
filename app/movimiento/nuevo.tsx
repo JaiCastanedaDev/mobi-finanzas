@@ -184,8 +184,8 @@ export default function NuevoMovimiento() {
 
       {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
       <View className="flex-row gap-2.5">
-        <Button className="flex-1" label="Cancelar" variant="ghost" onPress={() => router.back()} />
-        <Button className="flex-1" label="Guardar" onPress={onSave} />
+        <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => router.back()} />
+        <Button style={{ flex: 1 }} label="Guardar" onPress={onSave} />
       </View>
       <View className="h-3" />
       <Button label="Hoy no gasté 🙌" variant="ghost" onPress={onNoSpend} />
