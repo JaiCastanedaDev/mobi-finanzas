@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { useTheme } from '../../lib/theme';
+import { onColor, useTheme } from '../../lib/theme';
 
 type Props = { label: string; selected: boolean; onPress: () => void; color?: string };
 
@@ -18,7 +18,10 @@ export function Chip({ label, selected, onPress, color }: Props) {
       }}
     >
       {color && !selected ? <View className="mr-1.5 h-[7px] w-[7px] rounded-full" style={{ backgroundColor: color }} /> : null}
-      <Text className="text-[11.5px] font-semibold" style={{ color: selected ? t.onPrimary : t.text }}>
+      <Text
+        className="text-[11.5px] font-semibold"
+        style={{ color: selected ? (color ? onColor(color) : t.onPrimary) : t.text }}
+      >
         {label}
       </Text>
     </Pressable>

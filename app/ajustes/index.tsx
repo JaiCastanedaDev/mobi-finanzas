@@ -63,7 +63,7 @@ export default function Ajustes() {
         ) : null}
         {!permGranted ? (
           <View className="px-3 pb-3">
-            <Text className="mb-2 text-xs font-medium" style={{ color: t.streakDot }}>
+            <Text className="mb-2 text-xs font-medium" style={{ color: t.neg }}>
               Las notificaciones están desactivadas para la app.
             </Text>
             <Button

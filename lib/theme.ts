@@ -8,16 +8,16 @@ const light = {
   text: '#1e1a10',
   textSub: '#686357',
   pos: '#267b4c',
-  posBg: '#cff2da',
+  posBg: '#dcf7e5',
   neg: '#b04f49',
   primary: '#267b4c',
   primaryShadow: 'rgba(38,123,76,0.4)',
   streakBg: '#fbe7d8',
   streakBg2: '#d4f0dc',
   streakText: '#632500',
-  streakDot: '#df6c32',
-  amber: '#aa8f44',
-  terracotta: '#c4936b',
+  streakDot: '#c2571f',
+  amber: '#7d691f',
+  terracotta: '#9c6636',
   neutral: '#d0cec7',
   tabInactive: '#6f6c61',
   onPrimary: '#ffffff',
@@ -51,4 +51,20 @@ export const themes = { light, dark };
 export function useTheme(): Theme {
   const { colorScheme } = useColorScheme();
   return colorScheme === 'dark' ? themes.dark : themes.light;
+}
+
+/**
+ * Texto/ícono (blanco o negro) con mayor contraste WCAG sobre un color de acento
+ * arbitrario (colores de categoría en chips rellenos). Blanco fijo falla 4.5:1
+ * sobre la mitad de la paleta categórica; elegir por luminancia garantiza ≥4.5:1
+ * en toda la paleta sembrada y en los colores de categorías ya guardadas.
+ */
+export function onColor(hex: string): '#ffffff' | '#000000' {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // Umbral donde el contraste de blanco y negro se iguala: (L+0.05)² = 1.05·0.05.
+  return lum < 0.1791 ? '#ffffff' : '#000000';
 }

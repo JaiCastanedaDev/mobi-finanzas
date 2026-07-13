@@ -12,7 +12,7 @@ module.exports = {
         ink: { DEFAULT: '#1e1a10', dark: '#f3f2ed' },
         sub: { DEFAULT: '#686357', dark: '#918f88' },
         pos: { DEFAULT: '#267b4c', dark: '#51b67a' },
-        posbg: { DEFAULT: '#cff2da', dark: '#12301e' },
+        posbg: { DEFAULT: '#dcf7e5', dark: '#12301e' },
         neg: { DEFAULT: '#b04f49', dark: '#eb827b' },
         primary: { DEFAULT: '#267b4c', dark: '#3fa66b' },
         onprimary: { DEFAULT: '#ffffff', dark: '#0a0905' },

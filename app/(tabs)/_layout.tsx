@@ -63,7 +63,7 @@ function MfTabBar({ state, navigation }: BottomTabBarProps) {
           elevation: 6,
         }}
       >
-        <Plus color={t.onPrimary} size={24} />
+        <Plus color={t.onPrimary} size={24} strokeWidth={2.75} />
       </AnimatedPressable>
       {renderTab('cuentas')}
       {renderTab('metas')}

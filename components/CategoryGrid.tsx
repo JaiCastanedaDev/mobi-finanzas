@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Pressable, Text, View } from 'react-native';
 import { icons } from '../lib/iconMap';
-import { useTheme } from '../lib/theme';
+import { onColor, useTheme } from '../lib/theme';
 import { db } from '../db/client';
 import { categories } from '../db/schema';
 
@@ -31,8 +31,8 @@ export function CategoryGrid({ kind, selectedId, onSelect }: Props) {
               borderColor: selected ? cat.color : t.border,
             }}
           >
-            <Icon size={14} color={selected ? '#ffffff' : cat.color} />
-            <Text className="ml-1.5 text-[11.5px] font-semibold" style={{ color: selected ? '#ffffff' : t.text }} numberOfLines={1}>
+            <Icon size={14} color={selected ? onColor(cat.color) : cat.color} />
+            <Text className="ml-1.5 text-[11.5px] font-semibold" style={{ color: selected ? onColor(cat.color) : t.text }} numberOfLines={1}>
               {cat.name}
             </Text>
           </Pressable>
