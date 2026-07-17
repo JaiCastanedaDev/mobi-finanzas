@@ -1,4 +1,5 @@
 import type { Account, Category, SavingsGoal, Tx } from '../db/schema';
+import { monthOf, monthsBetween } from './dates';
 
 export function accountBalance(account: Account, txs: Tx[]): number {
   let bal = account.initialBalance;
@@ -56,4 +57,20 @@ export function goalProgress(goal: SavingsGoal, accounts: Account[], txs: Tx[]):
     return acc ? accountBalance(acc, txs) : 0;
   }
   return goal.manualAmount;
+}
+
+export type MonthlyTarget =
+  | { status: 'sin_fecha' }
+  | { status: 'completa' }
+  | { status: 'vencida'; remaining: number }
+  | { status: 'activa'; perMonth: number; monthsLeft: number; targetDate: string };
+
+export function monthlyTarget(goal: SavingsGoal, progress: number, today: string): MonthlyTarget {
+  if (progress >= goal.targetAmount) return { status: 'completa' };
+  if (goal.targetDate == null) return { status: 'sin_fecha' };
+  const remaining = goal.targetAmount - progress;
+  const monthsLeft = monthsBetween(monthOf(today), monthOf(goal.targetDate)) + 1;
+  if (monthsLeft <= 0) return { status: 'vencida', remaining };
+  const perMonth = Math.ceil(remaining / monthsLeft);
+  return { status: 'activa', perMonth, monthsLeft, targetDate: goal.targetDate };
 }
