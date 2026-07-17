@@ -56,6 +56,14 @@ describe('goals repo — targetDate y updateGoal', () => {
     updateGoal(db, id, { targetDate: null });
     expect(db.select().from(savingsGoals).all()[0].targetDate).toBeNull();
   });
+  it('updateGoal que omite targetDate deja la fecha intacta', () => {
+    const db = createTestDb();
+    const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000, targetDate: '2026-12-31' });
+    updateGoal(db, id, { name: 'Viaje editado' });
+    const row = db.select().from(savingsGoals).all()[0];
+    expect(row.name).toBe('Viaje editado');
+    expect(row.targetDate).toBe('2026-12-31');
+  });
   it('updateGoal valida nombre vacío y objetivo inválido', () => {
     const db = createTestDb();
     const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000 });
