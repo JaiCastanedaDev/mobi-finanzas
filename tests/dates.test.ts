@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysISO, lastNMonths, monthLabel, monthOf, monthsBetween, shiftMonth, todayISO, yesterdayOf } from '../lib/dates';
+import { addDaysISO, lastNMonths, monthLabel, monthOf, monthsBetween, nextDateForDay, shiftMonth, todayISO, yesterdayOf } from '../lib/dates';
 
 describe('dates', () => {
   it('todayISO formatea local YYYY-MM-DD', () => {
@@ -34,5 +34,23 @@ describe('monthsBetween', () => {
   });
   it('ignora el día si recibe fechas completas', () => {
     expect(monthsBetween('2026-07-31', '2026-09-01')).toBe(2);
+  });
+});
+
+describe('nextDateForDay', () => {
+  it('día futuro dentro del mes actual', () => {
+    expect(nextDateForDay(20, '2026-07-17')).toBe('2026-07-20');
+  });
+  it('día = hoy → hoy', () => {
+    expect(nextDateForDay(17, '2026-07-17')).toBe('2026-07-17');
+  });
+  it('día ya pasado → mes siguiente', () => {
+    expect(nextDateForDay(5, '2026-07-17')).toBe('2026-08-05');
+  });
+  it('clamp al último día en meses cortos', () => {
+    expect(nextDateForDay(31, '2026-02-10')).toBe('2026-02-28');
+  });
+  it('cruce de año en diciembre', () => {
+    expect(nextDateForDay(5, '2026-12-10')).toBe('2027-01-05');
   });
 });
