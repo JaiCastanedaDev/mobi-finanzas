@@ -4,6 +4,7 @@ import { accounts, transactions } from '../db/schema';
 import { createAccount, removeAccount, updateAccount } from '../db/repos/accounts';
 import { createCategory } from '../db/repos/categories';
 import { archiveGoal, createGoal } from '../db/repos/goals';
+import { cardDebt } from '../lib/calc';
 import { createTestDb } from './helpers/testDb';
 
 describe('accounts repo', () => {
@@ -46,5 +47,41 @@ describe('accounts repo', () => {
     const row = db.select().from(accounts).all()[0];
     expect(row.name).toBe('Caja menor');
     expect(row.initialBalance).toBe(5000);
+  });
+
+  it('crea tarjeta de crédito con cupo y fechas', () => {
+    const db = createTestDb();
+    const id = createAccount(db, { name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 3000000, cutoffDay: 15, dueDay: 5 });
+    const row = db.select().from(accounts).all()[0];
+    expect(row.type).toBe('credito');
+    expect(row.creditLimit).toBe(3000000);
+    expect(row.cutoffDay).toBe(15);
+    expect(row.dueDay).toBe(5);
+    expect(id).toBeGreaterThan(0);
+  });
+
+  it('updateAccount edita cupo y fechas de la tarjeta', () => {
+    const db = createTestDb();
+    const id = createAccount(db, { name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 3000000, cutoffDay: 15, dueDay: 5 });
+    updateAccount(db, id, { creditLimit: 4000000, cutoffDay: 20 });
+    const row = db.select().from(accounts).all()[0];
+    expect(row.creditLimit).toBe(4000000);
+    expect(row.cutoffDay).toBe(20);
+    expect(row.dueDay).toBe(5);
+  });
+
+  it('editar nombre de una tarjeta no re-ancla la deuda (no duplica cardDebt)', () => {
+    const db = createTestDb();
+    const id = createAccount(db, { name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 3000000, cutoffDay: 15, dueDay: 5 });
+    const catId = createCategory(db, { name: 'Mercado', kind: 'gasto', icon: 'ShoppingCart', color: '#ef4444' });
+    db.insert(transactions)
+      .values({ kind: 'gasto', amount: 500000, date: '2026-07-01', accountId: id, categoryId: catId, createdAt: '2026-07-01T12:00:00Z' })
+      .run();
+    const card = db.select().from(accounts).all().find((a) => a.id === id)!;
+    expect(cardDebt(card, db.select().from(transactions).all())).toBe(500000);
+    updateAccount(db, id, { name: 'Visa Oro', creditLimit: 4000000, cutoffDay: 20, dueDay: 5 });
+    const card2 = db.select().from(accounts).all().find((a) => a.id === id)!;
+    expect(card2.name).toBe('Visa Oro');
+    expect(cardDebt(card2, db.select().from(transactions).all())).toBe(500000); // sin cambios, no duplicado
   });
 });

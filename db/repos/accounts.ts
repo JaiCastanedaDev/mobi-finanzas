@@ -2,7 +2,14 @@ import { and, eq, isNull, or } from 'drizzle-orm';
 import { accounts, savingsGoals, transactions } from '../schema';
 import type { DB } from '../types';
 
-type AccountInput = { name: string; type: 'debito' | 'ahorro' | 'efectivo'; initialBalance: number };
+type AccountInput = {
+  name: string;
+  type: 'debito' | 'ahorro' | 'efectivo' | 'credito';
+  initialBalance: number;
+  creditLimit?: number | null;
+  cutoffDay?: number | null;
+  dueDay?: number | null;
+};
 
 function assertNameFree(db: DB, name: string, exceptId?: number) {
   const clean = name.trim();
@@ -20,7 +27,15 @@ export function createAccount(db: DB, input: AccountInput): number {
   assertNameFree(db, input.name);
   const res = db
     .insert(accounts)
-    .values({ name: input.name.trim(), type: input.type, initialBalance: input.initialBalance, createdAt: new Date().toISOString() })
+    .values({
+      name: input.name.trim(),
+      type: input.type,
+      initialBalance: input.initialBalance,
+      creditLimit: input.creditLimit ?? null,
+      cutoffDay: input.cutoffDay ?? null,
+      dueDay: input.dueDay ?? null,
+      createdAt: new Date().toISOString(),
+    })
     .run();
   return Number(res.lastInsertRowid);
 }

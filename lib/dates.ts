@@ -50,3 +50,15 @@ export function monthsBetween(from: string, to: string): number {
   const [ty, tm] = to.slice(0, 7).split('-').map(Number);
   return (ty - fy) * 12 + (tm - fm);
 }
+
+export function nextDateForDay(day: number, today: string): string {
+  const [y, m, d] = today.split('-').map(Number);
+  const daysIn = (yy: number, mm: number) => new Date(yy, mm, 0).getDate(); // mm 1-based
+  const iso = (yy: number, mm: number, dd: number) =>
+    `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  const thisClamped = Math.min(day, daysIn(y, m));
+  if (thisClamped >= d) return iso(y, m, thisClamped);
+  const ny = m === 12 ? y + 1 : y;
+  const nm = m === 12 ? 1 : m + 1;
+  return iso(ny, nm, Math.min(day, daysIn(ny, nm)));
+}

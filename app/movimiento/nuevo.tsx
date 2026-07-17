@@ -10,11 +10,12 @@ import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
 import { db } from '../../db/client';
-import { accounts } from '../../db/schema';
+import { accounts, transactions } from '../../db/schema';
 import { displayStreak, logToday } from '../../db/repos/streak';
 import { createTransaction } from '../../db/repos/transactions';
 import { addDaysISO, todayISO } from '../../lib/dates';
-import { parseAmount } from '../../lib/money';
+import { formatCOP, parseAmount } from '../../lib/money';
+import { cardAvailable } from '../../lib/calc';
 import { useTheme } from '../../lib/theme';
 import { rescheduleReminders } from '../../lib/notifications';
 import { makeTransactionSchema } from '../../lib/validation';
@@ -32,6 +33,7 @@ export default function NuevoMovimiento() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const { data: accs } = useLiveQuery(db.select().from(accounts).where(isNull(accounts.archivedAt)));
+  const { data: txs } = useLiveQuery(db.select().from(transactions));
 
   const [kind, setKind] = useState<'gasto' | 'ingreso' | 'transferencia'>('gasto');
   const [amountDigits, setAmountDigits] = useState('');
@@ -42,6 +44,14 @@ export default function NuevoMovimiento() {
   const [note, setNote] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState('');
+
+  const selectedAccount = (accs ?? []).find((a) => a.id === accountId);
+  const overLimit =
+    kind === 'gasto' && selectedAccount?.type === 'credito'
+      ? parseAmount(amountDigits || '0') > cardAvailable(selectedAccount, txs ?? [])
+      : false;
+  const availableForCard =
+    selectedAccount?.type === 'credito' ? cardAvailable(selectedAccount, txs ?? []) : 0;
 
   async function afterLog(streakState: { currentStreak: number; bestStreak: number; lastLoggedDate: string | null }) {
     await rescheduleReminders({ loggedToday: true, streak: displayStreak(streakState, today) }).catch(() => {});
@@ -161,6 +171,12 @@ export default function NuevoMovimiento() {
           <Chip key={a.id} label={a.name} selected={accountId === a.id} onPress={() => setAccountId(a.id)} />
         ))}
       </View>
+
+      {overLimit ? (
+        <Text className="mb-2 text-[11px] font-medium text-neg dark:text-neg-dark">
+          Excede el cupo disponible ({formatCOP(availableForCard)}). Puedes registrarlo igual.
+        </Text>
+      ) : null}
 
       {kind === 'transferencia' ? (
         <>

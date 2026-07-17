@@ -3,8 +3,11 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 export const accounts = sqliteTable('accounts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
-  type: text('type', { enum: ['debito', 'ahorro', 'efectivo'] }).notNull(),
+  type: text('type', { enum: ['debito', 'ahorro', 'efectivo', 'credito'] }).notNull(),
   initialBalance: integer('initial_balance').notNull().default(0),
+  creditLimit: integer('credit_limit'),
+  cutoffDay: integer('cutoff_day'),
+  dueDay: integer('due_day'),
   archivedAt: text('archived_at'),
   createdAt: text('created_at').notNull(),
 });

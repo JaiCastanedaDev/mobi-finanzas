@@ -23,11 +23,19 @@ export function makeTransactionSchema(today: string) {
 
 export type TransactionFormValues = z.infer<ReturnType<typeof makeTransactionSchema>>;
 
-export const accountSchema = z.object({
-  name: z.string().trim().min(1, 'Escribe un nombre'),
-  type: z.enum(['debito', 'ahorro', 'efectivo']),
-  initialBalance: z.number({ message: 'Escribe el saldo inicial' }).int(),
-});
+export const accountSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Escribe un nombre'),
+    type: z.enum(['debito', 'ahorro', 'efectivo', 'credito']),
+    initialBalance: z.number({ message: 'Escribe el saldo inicial' }).int(),
+    creditLimit: z.number().int().positive('El cupo debe ser mayor que 0').nullable().optional(),
+    cutoffDay: z.number().int().min(1, 'Día inválido').max(31, 'Día inválido').nullable().optional(),
+    dueDay: z.number().int().min(1, 'Día inválido').max(31, 'Día inválido').nullable().optional(),
+  })
+  .refine((v) => v.type !== 'credito' || (v.creditLimit != null && v.creditLimit > 0), {
+    message: 'El cupo debe ser mayor que 0',
+    path: ['creditLimit'],
+  });
 
 export const categorySchema = z.object({
   name: z.string().trim().min(1, 'Escribe un nombre'),
