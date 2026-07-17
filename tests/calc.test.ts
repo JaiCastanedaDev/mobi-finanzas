@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Account, Category, SavingsGoal, Tx } from '../db/schema';
-import { accountBalance, balanceByMonth, expensesByCategory, goalProgress, monthlyTarget, monthSummary } from '../lib/calc';
+import { accountBalance, balanceByMonth, cardAvailable, cardDebt, expensesByCategory, goalProgress, monthlyTarget, monthSummary } from '../lib/calc';
 
 const acc = (id: number, initialBalance = 0): Account =>
   ({ id, name: `Cuenta ${id}`, type: 'debito', initialBalance, archivedAt: null, createdAt: '' }) as Account;
@@ -113,5 +113,46 @@ describe('monthlyTarget', () => {
     expect(monthlyTarget(goal({ targetDate: '2026-06-30' }), 500000, '2026-07-17')).toEqual({
       status: 'vencida', remaining: 700000,
     });
+  });
+});
+
+describe('cardDebt / cardAvailable', () => {
+  const card = (creditLimit: number, initialBalance = 0): Account =>
+    ({ id: 9, name: 'Visa', type: 'credito', initialBalance, creditLimit, cutoffDay: null, dueDay: null, archivedAt: null, createdAt: '' }) as Account;
+
+  it('deuda = suma de gastos con la tarjeta; disponible = cupo - deuda', () => {
+    const c = card(1000000);
+    const txs = [
+      tx({ kind: 'gasto', amount: 300000, accountId: 9 }),
+      tx({ kind: 'gasto', amount: 200000, accountId: 9 }),
+    ];
+    expect(cardDebt(c, txs)).toBe(500000);
+    expect(cardAvailable(c, txs)).toBe(500000);
+  });
+
+  it('un pago (transferencia entrante) reduce la deuda', () => {
+    const c = card(1000000);
+    const txs = [
+      tx({ kind: 'gasto', amount: 500000, accountId: 9 }),
+      tx({ kind: 'transferencia', amount: 200000, accountId: 1, toAccountId: 9 }),
+    ];
+    expect(cardDebt(c, txs)).toBe(300000);
+    expect(cardAvailable(c, txs)).toBe(700000);
+  });
+
+  it('deuda inicial vía initialBalance negativo', () => {
+    const c = card(1000000, -400000);
+    expect(cardDebt(c, [])).toBe(400000);
+    expect(cardAvailable(c, [])).toBe(600000);
+  });
+
+  it('sobrepago → deuda 0 y disponible limitado al cupo', () => {
+    const c = card(1000000);
+    const txs = [
+      tx({ kind: 'gasto', amount: 100000, accountId: 9 }),
+      tx({ kind: 'transferencia', amount: 300000, accountId: 1, toAccountId: 9 }),
+    ];
+    expect(cardDebt(c, txs)).toBe(0);
+    expect(cardAvailable(c, txs)).toBe(1000000);
   });
 });

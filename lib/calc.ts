@@ -74,3 +74,11 @@ export function monthlyTarget(goal: SavingsGoal, progress: number, today: string
   const perMonth = Math.ceil(remaining / monthsLeft);
   return { status: 'activa', perMonth, monthsLeft, targetDate: goal.targetDate };
 }
+
+export function cardDebt(card: Account, txs: Tx[]): number {
+  return Math.max(0, -accountBalance(card, txs));
+}
+
+export function cardAvailable(card: Account, txs: Tx[]): number {
+  return Math.max(0, (card.creditLimit ?? 0) - cardDebt(card, txs));
+}
