@@ -91,9 +91,10 @@ export default function Metas() {
   }
 
   const previewAmount = parseAmount(targetText || '0');
-  const previewProgress = isEditing && formGoalId != null && formGoalId > 0
-    ? goalProgress((goals ?? []).find((g) => g.id === formGoalId)!, accs ?? [], txs ?? [])
-    : 0;
+  const editingGoal = isEditing && formGoalId != null && formGoalId > 0
+    ? (goals ?? []).find((g) => g.id === formGoalId)
+    : undefined;
+  const previewProgress = editingGoal ? goalProgress(editingGoal, accs ?? [], txs ?? []) : 0;
   const preview = targetDate && previewAmount > 0
     ? monthlyTarget(
         { targetAmount: previewAmount, targetDate, manualAmount: previewProgress } as any,
