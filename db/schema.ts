@@ -36,6 +36,7 @@ export const savingsGoals = sqliteTable('savings_goals', {
   targetAmount: integer('target_amount').notNull(),
   accountId: integer('account_id').references(() => accounts.id),
   manualAmount: integer('manual_amount').notNull().default(0),
+  targetDate: text('target_date'),
   archivedAt: text('archived_at'),
   createdAt: text('created_at').notNull(),
 });
