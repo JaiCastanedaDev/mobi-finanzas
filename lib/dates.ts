@@ -44,3 +44,9 @@ export function dayLabel(iso: string, today: string): string {
   const [, m, d] = iso.split('-').map(Number);
   return `${d} ${MESES[m - 1]}`;
 }
+
+export function monthsBetween(from: string, to: string): number {
+  const [fy, fm] = from.slice(0, 7).split('-').map(Number);
+  const [ty, tm] = to.slice(0, 7).split('-').map(Number);
+  return (ty - fy) * 12 + (tm - fm);
+}
