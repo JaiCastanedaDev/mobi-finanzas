@@ -47,6 +47,7 @@ export default function Metas() {
     setTargetText('');
     setLinkedAccountId(null);
     setTargetDate(null);
+    setShowDatePicker(false);
     setError('');
   }
 
@@ -57,6 +58,7 @@ export default function Metas() {
     setTargetText(String(g.targetAmount));
     setLinkedAccountId(g.accountId ?? null);
     setTargetDate(g.targetDate ?? null);
+    setShowDatePicker(false);
     setError('');
   }
 
