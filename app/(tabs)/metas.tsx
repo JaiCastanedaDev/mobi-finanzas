@@ -18,6 +18,8 @@ import { formatCOP, parseAmount } from '../../lib/money';
 import { useTheme } from '../../lib/theme';
 import { goalSchema } from '../../lib/validation';
 
+const mesesLabel = (n: number) => `${n} ${n === 1 ? 'mes' : 'meses'}`;
+
 export default function Metas() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -90,18 +92,18 @@ export default function Metas() {
     closeForm();
   }
 
-  const previewAmount = parseAmount(targetText || '0');
-  const editingGoal = isEditing && formGoalId != null && formGoalId > 0
-    ? (goals ?? []).find((g) => g.id === formGoalId)
-    : undefined;
-  const previewProgress = editingGoal ? goalProgress(editingGoal, accs ?? [], txs ?? []) : 0;
-  const preview = targetDate && previewAmount > 0
-    ? monthlyTarget(
-        { targetAmount: previewAmount, targetDate, manualAmount: previewProgress } as any,
-        previewProgress,
-        today,
-      )
-    : null;
+  const preview = (() => {
+    if (formGoalId == null || !targetDate) return null;
+    const previewAmount = parseAmount(targetText || '0');
+    if (previewAmount <= 0) return null;
+    const editingGoal = isEditing && formGoalId > 0 ? (goals ?? []).find((g) => g.id === formGoalId) : undefined;
+    const previewProgress = editingGoal ? goalProgress(editingGoal, accs ?? [], txs ?? []) : 0;
+    return monthlyTarget(
+      { targetAmount: previewAmount, targetDate, manualAmount: previewProgress } as any,
+      previewProgress,
+      today,
+    );
+  })();
 
   function onDelete(id: number, goalName: string) {
     Alert.alert(`Eliminar "${goalName}"`, 'Esta acción no se puede deshacer.', [
@@ -187,7 +189,7 @@ export default function Metas() {
               </View>
               {mt.status === 'activa' ? (
                 <Text className="mt-1.5 text-[10.5px] font-medium text-sub dark:text-sub-dark">
-                  Ahorra {formatCOP(mt.perMonth)}/mes · faltan {mt.monthsLeft} {mt.monthsLeft === 1 ? 'mes' : 'meses'} ({monthLabel(monthOf(mt.targetDate))})
+                  Ahorra {formatCOP(mt.perMonth)}/mes · faltan {mesesLabel(mt.monthsLeft)} ({monthLabel(monthOf(mt.targetDate))})
                 </Text>
               ) : mt.status === 'vencida' ? (
                 <Text className="mt-1.5 text-[10.5px] font-medium text-neg dark:text-neg-dark">
@@ -249,7 +251,7 @@ export default function Metas() {
 
             {preview && preview.status === 'activa' ? (
               <Text className="mb-2 text-[11px] font-medium text-primary dark:text-primary-dark">
-                ≈ {formatCOP(preview.perMonth)}/mes durante {preview.monthsLeft} {preview.monthsLeft === 1 ? 'mes' : 'meses'}
+                ≈ {formatCOP(preview.perMonth)}/mes durante {mesesLabel(preview.monthsLeft)}
               </Text>
             ) : preview && preview.status === 'vencida' ? (
               <Text className="mb-2 text-[11px] font-medium text-neg dark:text-neg-dark">La fecha elegida ya pasó</Text>
