@@ -1,3 +1,4 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Trash2 } from 'lucide-react-native';
@@ -10,8 +11,9 @@ import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
 import { db } from '../../db/client';
 import { accounts, savingsGoals, transactions } from '../../db/schema';
-import { addToGoal, archiveGoal, createGoal, deleteGoal } from '../../db/repos/goals';
-import { goalProgress } from '../../lib/calc';
+import { addToGoal, archiveGoal, createGoal, deleteGoal, updateGoal } from '../../db/repos/goals';
+import { goalProgress, monthlyTarget } from '../../lib/calc';
+import { monthLabel, monthOf, todayISO } from '../../lib/dates';
 import { formatCOP, parseAmount } from '../../lib/money';
 import { useTheme } from '../../lib/theme';
 import { goalSchema } from '../../lib/validation';
@@ -22,30 +24,81 @@ export default function Metas() {
   const { data: goals } = useLiveQuery(db.select().from(savingsGoals).where(isNull(savingsGoals.archivedAt)));
   const { data: accs } = useLiveQuery(db.select().from(accounts).where(isNull(accounts.archivedAt)));
   const { data: txs } = useLiveQuery(db.select().from(transactions));
+  type Goal = NonNullable<typeof goals>[number];
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const today = todayISO();
+  const [formGoalId, setFormGoalId] = useState<number | null>(null); // null = cerrado
+  const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
   const [targetText, setTargetText] = useState('');
   const [linkedAccountId, setLinkedAccountId] = useState<number | null>(null);
+  const [targetDate, setTargetDate] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState('');
 
   const [abonarGoalId, setAbonarGoalId] = useState<number | null>(null);
   const [abonoText, setAbonoText] = useState('');
   const [abonoError, setAbonoError] = useState('');
 
-  function onCreate() {
-    const parsed = goalSchema.safeParse({ name, targetAmount: parseAmount(targetText || '0'), accountId: linkedAccountId });
+  function openCreate() {
+    setIsEditing(false);
+    setFormGoalId(-1); // -1 = creando (no hay id todavía)
+    setName('');
+    setTargetText('');
+    setLinkedAccountId(null);
+    setTargetDate(null);
+    setError('');
+  }
+
+  function openEdit(g: Goal) {
+    setIsEditing(true);
+    setFormGoalId(g.id);
+    setName(g.name);
+    setTargetText(String(g.targetAmount));
+    setLinkedAccountId(g.accountId ?? null);
+    setTargetDate(g.targetDate ?? null);
+    setError('');
+  }
+
+  function closeForm() {
+    setFormGoalId(null);
+  }
+
+  function onSubmit() {
+    const parsed = goalSchema.safeParse({
+      name,
+      targetAmount: parseAmount(targetText || '0'),
+      accountId: isEditing ? undefined : linkedAccountId,
+      targetDate,
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return;
     }
-    createGoal(db, parsed.data);
-    setCreateOpen(false);
-    setName('');
-    setTargetText('');
-    setLinkedAccountId(null);
-    setError('');
+    try {
+      if (isEditing && formGoalId != null && formGoalId > 0) {
+        updateGoal(db, formGoalId, { name: parsed.data.name, targetAmount: parsed.data.targetAmount, targetDate: parsed.data.targetDate ?? null });
+      } else {
+        createGoal(db, parsed.data);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error');
+      return;
+    }
+    closeForm();
   }
+
+  const previewAmount = parseAmount(targetText || '0');
+  const previewProgress = isEditing && formGoalId != null && formGoalId > 0
+    ? goalProgress((goals ?? []).find((g) => g.id === formGoalId)!, accs ?? [], txs ?? [])
+    : 0;
+  const preview = targetDate && previewAmount > 0
+    ? monthlyTarget(
+        { targetAmount: previewAmount, targetDate, manualAmount: previewProgress } as any,
+        previewProgress,
+        today,
+      )
+    : null;
 
   function onDelete(id: number, goalName: string) {
     Alert.alert(`Eliminar "${goalName}"`, 'Esta acción no se puede deshacer.', [
@@ -69,7 +122,7 @@ export default function Metas() {
     <View className="flex-1 bg-bg dark:bg-bg-dark" style={{ paddingTop: insets.top }}>
       <View className="flex-row items-center justify-between px-4 pb-1 pt-3.5">
         <Text className="text-xl font-bold text-ink dark:text-ink-dark">Metas</Text>
-        <AddButton onPress={() => setCreateOpen(true)} />
+        <AddButton onPress={openCreate} />
       </View>
 
       <FlatList
@@ -81,10 +134,12 @@ export default function Metas() {
           const progress = goalProgress(g, accs ?? [], txs ?? []);
           const pct = Math.min(100, Math.round((progress / g.targetAmount) * 100));
           const done = progress >= g.targetAmount;
+          const mt = monthlyTarget(g, progress, today);
           return (
-            <View
+            <Pressable
               className="rounded-card bg-card p-4 dark:bg-card-dark"
               style={{ borderWidth: 1, borderColor: done ? t.pos : t.border }}
+              onPress={() => openEdit(g)}
             >
               <View className="mb-2.5 flex-row items-start justify-between">
                 <View className="min-w-0 flex-1 pr-2">
@@ -127,12 +182,21 @@ export default function Metas() {
                   </Pressable>
                 ) : null}
               </View>
-            </View>
+              {mt.status === 'activa' ? (
+                <Text className="mt-1.5 text-[10.5px] font-medium text-sub dark:text-sub-dark">
+                  Ahorra {formatCOP(mt.perMonth)}/mes · faltan {mt.monthsLeft} {mt.monthsLeft === 1 ? 'mes' : 'meses'} ({monthLabel(monthOf(mt.targetDate))})
+                </Text>
+              ) : mt.status === 'vencida' ? (
+                <Text className="mt-1.5 text-[10.5px] font-medium text-neg dark:text-neg-dark">
+                  Plazo vencido · faltan {formatCOP(mt.remaining)}
+                </Text>
+              ) : null}
+            </Pressable>
           );
         }}
       />
 
-      {createOpen ? (
+      {formGoalId != null ? (
         <KeyboardAvoidingView
           className="absolute inset-0 justify-end bg-black/45"
           behavior="padding"
@@ -143,20 +207,55 @@ export default function Metas() {
             keyboardShouldPersistTaps="handled"
           >
             <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
-            <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">Nueva meta</Text>
+            <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">{isEditing ? 'Editar meta' : 'Nueva meta'}</Text>
             <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ej: Viaje a San Andrés" />
             <Field label="Monto objetivo (COP)" value={targetText} onChangeText={setTargetText} keyboardType="numeric" />
-            <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Ligar a una cuenta (opcional)</Text>
+
+            <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Fecha objetivo (opcional)</Text>
             <View className="mb-2 flex-row flex-wrap">
-              <Chip label="Manual" selected={linkedAccountId === null} onPress={() => setLinkedAccountId(null)} />
-              {(accs ?? []).map((a) => (
-                <Chip key={a.id} label={a.name} selected={linkedAccountId === a.id} onPress={() => setLinkedAccountId(a.id)} />
-              ))}
+              <Chip label="Sin fecha" selected={targetDate === null} onPress={() => setTargetDate(null)} />
+              <Chip
+                label={targetDate ? `📅 ${targetDate}` : '📅 Elegir'}
+                selected={targetDate !== null}
+                onPress={() => setShowDatePicker(true)}
+              />
             </View>
+            {showDatePicker ? (
+              <DateTimePicker
+                value={new Date(`${targetDate ?? today}T12:00:00`)}
+                mode="date"
+                minimumDate={new Date(`${today}T12:00:00`)}
+                onChange={(_, d) => {
+                  setShowDatePicker(false);
+                  if (d) setTargetDate(todayISO(d));
+                }}
+              />
+            ) : null}
+
+            {!isEditing ? (
+              <>
+                <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Ligar a una cuenta (opcional)</Text>
+                <View className="mb-2 flex-row flex-wrap">
+                  <Chip label="Manual" selected={linkedAccountId === null} onPress={() => setLinkedAccountId(null)} />
+                  {(accs ?? []).map((a) => (
+                    <Chip key={a.id} label={a.name} selected={linkedAccountId === a.id} onPress={() => setLinkedAccountId(a.id)} />
+                  ))}
+                </View>
+              </>
+            ) : null}
+
+            {preview && preview.status === 'activa' ? (
+              <Text className="mb-2 text-[11px] font-medium text-primary dark:text-primary-dark">
+                ≈ {formatCOP(preview.perMonth)}/mes durante {preview.monthsLeft} {preview.monthsLeft === 1 ? 'mes' : 'meses'}
+              </Text>
+            ) : preview && preview.status === 'vencida' ? (
+              <Text className="mb-2 text-[11px] font-medium text-neg dark:text-neg-dark">La fecha elegida ya pasó</Text>
+            ) : null}
+
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
-              <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setCreateOpen(false)} />
-              <Button style={{ flex: 1 }} label="Crear" onPress={onCreate} />
+              <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={closeForm} />
+              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} onPress={onSubmit} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
