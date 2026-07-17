@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { savingsGoals } from '../db/schema';
 import { createAccount } from '../db/repos/accounts';
-import { addToGoal, archiveGoal, createGoal, deleteGoal } from '../db/repos/goals';
+import { addToGoal, archiveGoal, createGoal, deleteGoal, updateGoal } from '../db/repos/goals';
 import { createTestDb } from './helpers/testDb';
 
 describe('goals repo', () => {
@@ -31,5 +31,35 @@ describe('goals repo', () => {
     expect(db.select().from(savingsGoals).all()[0].archivedAt).not.toBeNull();
     deleteGoal(db, id);
     expect(db.select().from(savingsGoals).all()).toHaveLength(0);
+  });
+});
+
+describe('goals repo — targetDate y updateGoal', () => {
+  it('crea meta con fecha objetivo', () => {
+    const db = createTestDb();
+    const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000, targetDate: '2026-12-31' });
+    expect(db.select().from(savingsGoals).all()[0].targetDate).toBe('2026-12-31');
+    expect(id).toBeGreaterThan(0);
+  });
+  it('actualiza nombre, objetivo y fecha', () => {
+    const db = createTestDb();
+    const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000 });
+    updateGoal(db, id, { name: 'Viaje a San Andrés', targetAmount: 1500000, targetDate: '2027-01-31' });
+    const row = db.select().from(savingsGoals).all()[0];
+    expect(row.name).toBe('Viaje a San Andrés');
+    expect(row.targetAmount).toBe(1500000);
+    expect(row.targetDate).toBe('2027-01-31');
+  });
+  it('updateGoal puede quitar la fecha (null)', () => {
+    const db = createTestDb();
+    const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000, targetDate: '2026-12-31' });
+    updateGoal(db, id, { targetDate: null });
+    expect(db.select().from(savingsGoals).all()[0].targetDate).toBeNull();
+  });
+  it('updateGoal valida nombre vacío y objetivo inválido', () => {
+    const db = createTestDb();
+    const id = createGoal(db, { name: 'Viaje', targetAmount: 1000000 });
+    expect(() => updateGoal(db, id, { name: '  ' })).toThrow();
+    expect(() => updateGoal(db, id, { targetAmount: 0 })).toThrow();
   });
 });
