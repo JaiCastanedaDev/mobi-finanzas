@@ -3,6 +3,7 @@ import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { icons } from '../../lib/iconMap';
 import { useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
@@ -13,6 +14,7 @@ import { createCategory, removeCategory } from '../../db/repos/categories';
 const COLORES = ['#267b4c', '#df6c32', '#2f7fbe', '#ab8b3d', '#7d6bc4', '#0f9f88', '#c46761', '#6b7f2e', '#a3599a', '#b0752b'];
 
 export default function Categorias() {
+  const insets = useSafeAreaInsets();
   const { data: cats } = useLiveQuery(db.select().from(categories).where(isNull(categories.archivedAt)));
   const [formOpen, setFormOpen] = useState(false);
   const [name, setName] = useState('');
@@ -39,10 +41,11 @@ export default function Categorias() {
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-bg p-4 dark:bg-bg-dark" behavior="padding">
+    <KeyboardAvoidingView className="flex-1 bg-bg px-4 pt-4 dark:bg-bg-dark" behavior="padding">
       <FlatList
         data={cats ?? []}
         keyExtractor={(c) => String(c.id)}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         renderItem={({ item: c }) => {
           const Icon = icons[c.icon as keyof typeof icons] ?? icons.Circle;
           return (
