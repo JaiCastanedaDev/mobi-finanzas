@@ -198,9 +198,11 @@ export default function Cuentas() {
                   <Pressable onPress={() => onRemove(a.id, a.name)} hitSlop={8}>
                     <Trash2 size={15} color={t.textSub} />
                   </Pressable>
-                  <Pressable onPress={() => openPay(a)} className="rounded-full bg-primary px-3.5 py-[7px] dark:bg-primary-dark">
-                    <Text className="text-[11.5px] font-semibold text-onprimary dark:text-onprimary-dark">Pagar</Text>
-                  </Pressable>
+                  {debt > 0 ? (
+                    <Pressable onPress={() => openPay(a)} className="rounded-full bg-primary px-3.5 py-[7px] dark:bg-primary-dark">
+                      <Text className="text-[11.5px] font-semibold text-onprimary dark:text-onprimary-dark">Pagar</Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               </Pressable>
             );
@@ -241,9 +243,9 @@ export default function Cuentas() {
             <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">{isEditing ? 'Editar cuenta' : 'Nueva cuenta'}</Text>
             <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ej. Nequi" />
             <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Tipo</Text>
-            <View className="mb-2 flex-row flex-wrap" style={isEditing ? { opacity: 0.6 } : undefined}>
+            <View className="mb-2 flex-row flex-wrap">
               {TIPOS.map((tp) => (
-                <Chip key={tp.value} label={tp.label} selected={type === tp.value} onPress={isEditing ? () => {} : () => setType(tp.value)} />
+                <Chip key={tp.value} label={tp.label} selected={type === tp.value} onPress={() => setType(tp.value)} disabled={isEditing} />
               ))}
             </View>
             {type === 'credito' ? (
