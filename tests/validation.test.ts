@@ -27,3 +27,15 @@ describe('accountSchema / goalSchema', () => {
     expect(goalSchema.safeParse({ name: 'Viaje', targetAmount: 500000 }).success).toBe(true);
   });
 });
+
+describe('accountSchema — crédito', () => {
+  it('crédito exige cupo > 0', () => {
+    expect(accountSchema.safeParse({ name: 'Visa', type: 'credito', initialBalance: 0 }).success).toBe(false);
+    expect(accountSchema.safeParse({ name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 0 }).success).toBe(false);
+    expect(accountSchema.safeParse({ name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 2000000, cutoffDay: 15, dueDay: 5 }).success).toBe(true);
+  });
+  it('días de corte/pago fuera de 1-31 se rechazan', () => {
+    expect(accountSchema.safeParse({ name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 1000, cutoffDay: 32 }).success).toBe(false);
+    expect(accountSchema.safeParse({ name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 1000, dueDay: 0 }).success).toBe(false);
+  });
+});

@@ -47,4 +47,25 @@ describe('accounts repo', () => {
     expect(row.name).toBe('Caja menor');
     expect(row.initialBalance).toBe(5000);
   });
+
+  it('crea tarjeta de crédito con cupo y fechas', () => {
+    const db = createTestDb();
+    const id = createAccount(db, { name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 3000000, cutoffDay: 15, dueDay: 5 });
+    const row = db.select().from(accounts).all()[0];
+    expect(row.type).toBe('credito');
+    expect(row.creditLimit).toBe(3000000);
+    expect(row.cutoffDay).toBe(15);
+    expect(row.dueDay).toBe(5);
+    expect(id).toBeGreaterThan(0);
+  });
+
+  it('updateAccount edita cupo y fechas de la tarjeta', () => {
+    const db = createTestDb();
+    const id = createAccount(db, { name: 'Visa', type: 'credito', initialBalance: 0, creditLimit: 3000000, cutoffDay: 15, dueDay: 5 });
+    updateAccount(db, id, { creditLimit: 4000000, cutoffDay: 20 });
+    const row = db.select().from(accounts).all()[0];
+    expect(row.creditLimit).toBe(4000000);
+    expect(row.cutoffDay).toBe(20);
+    expect(row.dueDay).toBe(5);
+  });
 });
