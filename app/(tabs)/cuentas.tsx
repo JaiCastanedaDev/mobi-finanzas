@@ -35,6 +35,7 @@ export default function Cuentas() {
 
   const today = todayISO();
   const [editingId, setEditingId] = useState<number | null>(null); // null cuando el sheet está cerrado
+  const isEditing = editingId != null && editingId > 0;
   const [name, setName] = useState('');
   const [type, setType] = useState<'debito' | 'ahorro' | 'efectivo' | 'credito'>('debito');
   const [balanceText, setBalanceText] = useState('');
@@ -90,7 +91,7 @@ export default function Cuentas() {
       return;
     }
     try {
-      if (editingId != null && editingId > 0) updateAccount(db, editingId, parsed.data);
+      if (isEditing && editingId != null) updateAccount(db, editingId, parsed.data);
       else createAccount(db, parsed.data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');
@@ -227,12 +228,12 @@ export default function Cuentas() {
             keyboardShouldPersistTaps="handled"
           >
             <View className="mb-3.5 h-1 w-9 self-center rounded-full bg-line dark:bg-line-dark" />
-            <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">{editingId != null && editingId > 0 ? 'Editar cuenta' : 'Nueva cuenta'}</Text>
+            <Text className="mb-3.5 text-base font-bold text-ink dark:text-ink-dark">{isEditing ? 'Editar cuenta' : 'Nueva cuenta'}</Text>
             <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ej. Nequi" />
             <Text className="mb-1.5 text-[11px] font-medium text-sub dark:text-sub-dark">Tipo</Text>
-            <View className="mb-2 flex-row flex-wrap">
+            <View className="mb-2 flex-row flex-wrap" style={isEditing ? { opacity: 0.6 } : undefined}>
               {TIPOS.map((tp) => (
-                <Chip key={tp.value} label={tp.label} selected={type === tp.value} onPress={() => setType(tp.value)} />
+                <Chip key={tp.value} label={tp.label} selected={type === tp.value} onPress={isEditing ? () => {} : () => setType(tp.value)} />
               ))}
             </View>
             {type === 'credito' ? (
@@ -254,7 +255,7 @@ export default function Cuentas() {
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
               <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setEditingId(null)} />
-              <Button style={{ flex: 1 }} label={editingId != null && editingId > 0 ? 'Guardar' : 'Crear'} onPress={onSubmit} />
+              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} onPress={onSubmit} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
