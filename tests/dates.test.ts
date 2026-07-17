@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDaysISO, lastNMonths, monthLabel, monthOf, shiftMonth, todayISO, yesterdayOf } from '../lib/dates';
+import { addDaysISO, lastNMonths, monthLabel, monthOf, monthsBetween, shiftMonth, todayISO, yesterdayOf } from '../lib/dates';
 
 describe('dates', () => {
   it('todayISO formatea local YYYY-MM-DD', () => {
@@ -22,5 +22,17 @@ describe('dates', () => {
   });
   it('monthLabel en español', () => {
     expect(monthLabel('2026-07')).toBe('jul 2026');
+  });
+});
+
+describe('monthsBetween', () => {
+  it('cuenta meses entre dos year-month', () => {
+    expect(monthsBetween('2026-07', '2026-12')).toBe(5);
+    expect(monthsBetween('2026-07', '2026-07')).toBe(0);
+    expect(monthsBetween('2026-07', '2026-06')).toBe(-1);
+    expect(monthsBetween('2025-11', '2026-02')).toBe(3);
+  });
+  it('ignora el día si recibe fechas completas', () => {
+    expect(monthsBetween('2026-07-31', '2026-09-01')).toBe(2);
   });
 });

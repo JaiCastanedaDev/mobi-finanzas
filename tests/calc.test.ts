@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Account, Category, SavingsGoal, Tx } from '../db/schema';
-import { accountBalance, balanceByMonth, expensesByCategory, goalProgress, monthSummary } from '../lib/calc';
+import { accountBalance, balanceByMonth, expensesByCategory, goalProgress, monthlyTarget, monthSummary } from '../lib/calc';
 
 const acc = (id: number, initialBalance = 0): Account =>
   ({ id, name: `Cuenta ${id}`, type: 'debito', initialBalance, archivedAt: null, createdAt: '' }) as Account;
@@ -79,5 +79,39 @@ describe('goalProgress', () => {
   });
   it('meta manual usa manualAmount', () => {
     expect(goalProgress(goal({ manualAmount: 70000 }), [], [])).toBe(70000);
+  });
+});
+
+describe('monthlyTarget', () => {
+  const goal = (p: Partial<SavingsGoal>): SavingsGoal =>
+    ({ id: 1, name: 'Viaje', targetAmount: 1200000, accountId: null, manualAmount: 0, targetDate: null, archivedAt: null, createdAt: '', ...p }) as SavingsGoal;
+
+  it('sin fecha objetivo → sin_fecha', () => {
+    expect(monthlyTarget(goal({ targetDate: null }), 0, '2026-07-17')).toEqual({ status: 'sin_fecha' });
+  });
+  it('progreso >= objetivo → completa (aunque tenga fecha)', () => {
+    expect(monthlyTarget(goal({ targetDate: '2026-12-31' }), 1200000, '2026-07-17')).toEqual({ status: 'completa' });
+  });
+  it('mes objetivo = mes actual → 1 mes, perMonth = restante', () => {
+    expect(monthlyTarget(goal({ targetDate: '2026-07-31' }), 200000, '2026-07-17')).toEqual({
+      status: 'activa', perMonth: 1000000, monthsLeft: 1, targetDate: '2026-07-31',
+    });
+  });
+  it('varios meses → monthsLeft incluye el mes actual y perMonth usa ceil', () => {
+    // hoy jul, meta dic → monthsLeft = (5)+1 = 6; restante 1200000 → 200000/mes
+    expect(monthlyTarget(goal({ targetDate: '2026-12-31' }), 0, '2026-07-17')).toEqual({
+      status: 'activa', perMonth: 200000, monthsLeft: 6, targetDate: '2026-12-31',
+    });
+  });
+  it('restante no divisible → ceil', () => {
+    // restante 100, 3 meses (hoy jul, meta sep) → ceil(100/3) = 34
+    expect(monthlyTarget(goal({ targetAmount: 100, targetDate: '2026-09-10' }), 0, '2026-07-17')).toMatchObject({
+      status: 'activa', perMonth: 34, monthsLeft: 3,
+    });
+  });
+  it('mes objetivo ya pasó → vencida con restante', () => {
+    expect(monthlyTarget(goal({ targetDate: '2026-06-30' }), 500000, '2026-07-17')).toEqual({
+      status: 'vencida', remaining: 700000,
+    });
   });
 });

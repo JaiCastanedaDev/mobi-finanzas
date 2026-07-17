@@ -1,0 +1,1 @@
+ALTER TABLE `savings_goals` ADD `target_date` text;
