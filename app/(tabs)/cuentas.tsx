@@ -91,8 +91,18 @@ export default function Cuentas() {
       return;
     }
     try {
-      if (isEditing && editingId != null) updateAccount(db, editingId, parsed.data);
-      else createAccount(db, parsed.data);
+      if (isEditing && editingId != null) {
+        if (isCredito) {
+          // No re-anclar la deuda: initialBalance no refleja los gastos acumulados,
+          // así que se omite del patch para no duplicar cardDebt.
+          const { name, type, creditLimit, cutoffDay, dueDay } = parsed.data;
+          updateAccount(db, editingId, { name, type, creditLimit, cutoffDay, dueDay });
+        } else {
+          updateAccount(db, editingId, parsed.data);
+        }
+      } else {
+        createAccount(db, parsed.data);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');
       return;
@@ -247,7 +257,9 @@ export default function Cuentas() {
                     <Field label="Día de pago" value={dueText} onChangeText={setDueText} keyboardType="numeric" placeholder="5" />
                   </View>
                 </View>
-                <Field label="Deuda actual (opcional)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
+                {!isEditing ? (
+                  <Field label="Deuda actual (opcional)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
+                ) : null}
               </>
             ) : (
               <Field label="Saldo inicial (COP)" value={balanceText} onChangeText={setBalanceText} keyboardType="numeric" placeholder="0" />
