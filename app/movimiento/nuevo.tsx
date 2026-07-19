@@ -94,8 +94,14 @@ export default function NuevoMovimiento() {
     }
     if (date === today) {
       // No se espera: afterLog() ya atrapa sus propios errores y no debe
-      // retrasar la navegación (era la causa del bug de doble-tap).
-      afterLog(ensureAppState(db));
+      // retrasar la navegación (era la causa del bug de doble-tap). Se
+      // envuelve en try/catch para que un fallo de ensureAppState tampoco
+      // deje el guard armado sin navegar.
+      try {
+        afterLog(ensureAppState(db));
+      } catch {
+        // Efecto secundario (racha/notificaciones); no debe bloquear el guardado.
+      }
     }
     router.back();
   }
