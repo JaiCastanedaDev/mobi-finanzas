@@ -7,18 +7,20 @@ type Props = {
   onPress: () => void;
   variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
+  loading?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
 // Estilos inline (no NativeWind): ver comentario en AnimatedPressable.tsx.
-export function Button({ label, onPress, variant = 'primary', disabled, style }: Props) {
+export function Button({ label, onPress, variant = 'primary', disabled, loading, style }: Props) {
   const t = useTheme();
   const ghost = variant === 'ghost';
   const bg = variant === 'primary' ? t.primary : variant === 'danger' ? t.neg : t.card;
+  const isDisabled = disabled || loading;
   return (
     <AnimatedPressable
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       style={[
         {
           alignItems: 'center',
@@ -28,12 +30,14 @@ export function Button({ label, onPress, variant = 'primary', disabled, style }:
           backgroundColor: bg,
           borderWidth: ghost ? 1 : 0,
           borderColor: t.border,
-          opacity: disabled ? 0.4 : 1,
+          opacity: isDisabled ? 0.4 : 1,
         },
         style,
       ]}
     >
-      <Text style={{ fontSize: 13, fontWeight: '600', color: ghost ? t.textSub : t.onPrimary }}>{label}</Text>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: ghost ? t.textSub : t.onPrimary }}>
+        {loading ? 'Guardando...' : label}
+      </Text>
     </AnimatedPressable>
   );
 }
