@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { eq, isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { CategoryGrid } from '../../components/CategoryGrid';
 import { Button } from '../../components/ui/Button';
@@ -32,6 +32,8 @@ export default function DetalleMovimiento() {
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   useEffect(() => {
     if (tx && !loaded) {
@@ -48,6 +50,7 @@ export default function DetalleMovimiento() {
   if (!tx) return null;
 
   function onSave() {
+    if (savingRef.current) return;
     const parsed = makeTransactionSchema(today).safeParse({
       kind: tx!.kind,
       amount: parseAmount(amountText),
@@ -61,11 +64,15 @@ export default function DetalleMovimiento() {
       setError(parsed.error.issues[0].message);
       return;
     }
+    savingRef.current = true;
+    setSaving(true);
     try {
       const { kind: _kind, ...patch } = parsed.data;
       updateTransaction(db, txId, patch);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error guardando');
+      savingRef.current = false;
+      setSaving(false);
       return;
     }
     router.back();
@@ -136,7 +143,7 @@ export default function DetalleMovimiento() {
 
       <Field label="Nota (opcional)" value={note} onChangeText={setNote} />
       {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
-      <Button label="Guardar cambios" onPress={onSave} />
+      <Button label="Guardar cambios" loading={saving} onPress={onSave} />
       <View className="h-3" />
       <Button label="Borrar movimiento" variant="danger" onPress={onDelete} />
     </ScrollView>
