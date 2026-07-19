@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryGrid } from '../../components/CategoryGrid';
@@ -11,7 +11,7 @@ import { Chip } from '../../components/ui/Chip';
 import { Field } from '../../components/ui/Field';
 import { db } from '../../db/client';
 import { accounts, transactions } from '../../db/schema';
-import { displayStreak, logToday } from '../../db/repos/streak';
+import { displayStreak, ensureAppState, logToday } from '../../db/repos/streak';
 import { createTransaction } from '../../db/repos/transactions';
 import { addDaysISO, todayISO } from '../../lib/dates';
 import { formatCOP, parseAmount } from '../../lib/money';
@@ -44,6 +44,8 @@ export default function NuevoMovimiento() {
   const [note, setNote] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   const selectedAccount = (accs ?? []).find((a) => a.id === accountId);
   const overLimit =
@@ -64,7 +66,8 @@ export default function NuevoMovimiento() {
     router.back();
   }
 
-  async function onSave() {
+  function onSave() {
+    if (savingRef.current) return;
     const candidate = {
       kind,
       amount: parseAmount(amountDigits),
@@ -79,15 +82,20 @@ export default function NuevoMovimiento() {
       setError(parsed.error.issues[0].message);
       return;
     }
+    savingRef.current = true;
+    setSaving(true);
     try {
       createTransaction(db, parsed.data, today);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error guardando');
+      savingRef.current = false;
+      setSaving(false);
       return;
     }
     if (date === today) {
-      const { ensureAppState } = await import('../../db/repos/streak');
-      await afterLog(ensureAppState(db));
+      // No se espera: afterLog() ya atrapa sus propios errores y no debe
+      // retrasar la navegación (era la causa del bug de doble-tap).
+      afterLog(ensureAppState(db));
     }
     router.back();
   }
@@ -201,7 +209,7 @@ export default function NuevoMovimiento() {
       {error ? <Text className="mb-3 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
       <View className="flex-row gap-2.5">
         <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => router.back()} />
-        <Button style={{ flex: 1 }} label="Guardar" onPress={onSave} />
+        <Button style={{ flex: 1 }} label="Guardar" loading={saving} onPress={onSave} />
       </View>
       <View className="h-3" />
       <Button label="Hoy no gasté 🙌" variant="ghost" onPress={onNoSpend} />
