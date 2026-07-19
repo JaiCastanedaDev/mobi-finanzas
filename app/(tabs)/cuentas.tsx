@@ -1,7 +1,7 @@
 import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Trash2 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -43,6 +43,8 @@ export default function Cuentas() {
   const [cutoffText, setCutoffText] = useState('');
   const [dueText, setDueText] = useState('');
   const [error, setError] = useState('');
+  const [savingAccount, setSavingAccount] = useState(false);
+  const savingAccountRef = useRef(false);
 
   // Pago de tarjeta
   const [payCard, setPayCard] = useState<Account | null>(null);
@@ -51,6 +53,8 @@ export default function Cuentas() {
   const [payDate, setPayDate] = useState(today);
   const [showPayPicker, setShowPayPicker] = useState(false);
   const [payError, setPayError] = useState('');
+  const [savingPay, setSavingPay] = useState(false);
+  const savingPayRef = useRef(false);
 
   function openCreate() {
     setEditingId(-1);
@@ -60,6 +64,8 @@ export default function Cuentas() {
     setCupoText('');
     setCutoffText('');
     setDueText('');
+    savingAccountRef.current = false;
+    setSavingAccount(false);
     setError('');
   }
 
@@ -71,10 +77,13 @@ export default function Cuentas() {
     setCupoText(a.creditLimit != null ? String(a.creditLimit) : '');
     setCutoffText(a.cutoffDay != null ? String(a.cutoffDay) : '');
     setDueText(a.dueDay != null ? String(a.dueDay) : '');
+    savingAccountRef.current = false;
+    setSavingAccount(false);
     setError('');
   }
 
   function onSubmit() {
+    if (savingAccountRef.current) return;
     const isCredito = type === 'credito';
     // Para crédito, "Deuda actual" se guarda como initialBalance negativo.
     const initialBalance = isCredito ? -parseAmount(balanceText || '0') : parseAmount(balanceText || '0');
@@ -90,6 +99,8 @@ export default function Cuentas() {
       setError(parsed.error.issues[0].message);
       return;
     }
+    savingAccountRef.current = true;
+    setSavingAccount(true);
     try {
       if (isEditing && editingId != null) {
         if (isCredito) {
@@ -105,6 +116,8 @@ export default function Cuentas() {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');
+      savingAccountRef.current = false;
+      setSavingAccount(false);
       return;
     }
     setEditingId(null);
@@ -116,14 +129,19 @@ export default function Cuentas() {
     setPayAccountId(null);
     setPayDate(today);
     setShowPayPicker(false);
+    savingPayRef.current = false;
+    setSavingPay(false);
     setPayError('');
   }
 
   function onPay() {
+    if (savingPayRef.current) return;
     if (payAccountId == null) {
       setPayError('Elige la cuenta de origen');
       return;
     }
+    savingPayRef.current = true;
+    setSavingPay(true);
     try {
       createTransaction(db, {
         kind: 'transferencia',
@@ -135,6 +153,8 @@ export default function Cuentas() {
       setPayCard(null);
     } catch (e) {
       setPayError(e instanceof Error ? e.message : 'Error');
+      savingPayRef.current = false;
+      setSavingPay(false);
     }
   }
 
@@ -269,7 +289,7 @@ export default function Cuentas() {
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
               <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setEditingId(null)} />
-              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} onPress={onSubmit} />
+              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} loading={savingAccount} onPress={onSubmit} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -311,7 +331,7 @@ export default function Cuentas() {
             {payError ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{payError}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
               <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setPayCard(null)} />
-              <Button style={{ flex: 1 }} label="Pagar" onPress={onPay} />
+              <Button style={{ flex: 1 }} label="Pagar" loading={savingPay} onPress={onPay} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
