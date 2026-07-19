@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { isNull } from 'drizzle-orm';
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Trash2 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddButton } from '../../components/ui/AddButton';
@@ -37,10 +37,14 @@ export default function Metas() {
   const [targetDate, setTargetDate] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [error, setError] = useState('');
+  const [savingGoal, setSavingGoal] = useState(false);
+  const savingGoalRef = useRef(false);
 
   const [abonarGoalId, setAbonarGoalId] = useState<number | null>(null);
   const [abonoText, setAbonoText] = useState('');
   const [abonoError, setAbonoError] = useState('');
+  const [savingAbono, setSavingAbono] = useState(false);
+  const savingAbonoRef = useRef(false);
 
   function openCreate() {
     setIsEditing(false);
@@ -50,6 +54,8 @@ export default function Metas() {
     setLinkedAccountId(null);
     setTargetDate(null);
     setShowDatePicker(false);
+    savingGoalRef.current = false;
+    setSavingGoal(false);
     setError('');
   }
 
@@ -61,6 +67,8 @@ export default function Metas() {
     setLinkedAccountId(g.accountId ?? null);
     setTargetDate(g.targetDate ?? null);
     setShowDatePicker(false);
+    savingGoalRef.current = false;
+    setSavingGoal(false);
     setError('');
   }
 
@@ -69,6 +77,7 @@ export default function Metas() {
   }
 
   function onSubmit() {
+    if (savingGoalRef.current) return;
     const parsed = goalSchema.safeParse({
       name,
       targetAmount: parseAmount(targetText || '0'),
@@ -79,6 +88,8 @@ export default function Metas() {
       setError(parsed.error.issues[0].message);
       return;
     }
+    savingGoalRef.current = true;
+    setSavingGoal(true);
     try {
       if (isEditing && formGoalId != null && formGoalId > 0) {
         updateGoal(db, formGoalId, { name: parsed.data.name, targetAmount: parsed.data.targetAmount, targetDate: parsed.data.targetDate ?? null });
@@ -87,6 +98,8 @@ export default function Metas() {
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error');
+      savingGoalRef.current = false;
+      setSavingGoal(false);
       return;
     }
     closeForm();
@@ -113,6 +126,9 @@ export default function Metas() {
   }
 
   function onAbonar() {
+    if (savingAbonoRef.current) return;
+    savingAbonoRef.current = true;
+    setSavingAbono(true);
     try {
       addToGoal(db, abonarGoalId!, parseAmount(abonoText || '0'));
       setAbonarGoalId(null);
@@ -120,6 +136,8 @@ export default function Metas() {
       setAbonoError('');
     } catch (e) {
       setAbonoError(e instanceof Error ? e.message : 'Error');
+      savingAbonoRef.current = false;
+      setSavingAbono(false);
     }
   }
 
@@ -172,7 +190,11 @@ export default function Metas() {
                 <Text className="text-[11px] font-semibold text-sub dark:text-sub-dark">{pct}%</Text>
                 {g.accountId == null && !done ? (
                   <Pressable
-                    onPress={() => setAbonarGoalId(g.id)}
+                    onPress={() => {
+                      savingAbonoRef.current = false;
+                      setSavingAbono(false);
+                      setAbonarGoalId(g.id);
+                    }}
                     className="rounded-full bg-primary px-3.5 py-[7px] dark:bg-primary-dark"
                   >
                     <Text className="text-[11.5px] font-semibold text-onprimary dark:text-onprimary-dark">Abonar</Text>
@@ -260,7 +282,7 @@ export default function Metas() {
             {error ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{error}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
               <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={closeForm} />
-              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} onPress={onSubmit} />
+              <Button style={{ flex: 1 }} label={isEditing ? 'Guardar' : 'Crear'} loading={savingGoal} onPress={onSubmit} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -277,7 +299,7 @@ export default function Metas() {
             {abonoError ? <Text className="mb-2 text-xs text-neg dark:text-neg-dark">{abonoError}</Text> : null}
             <View className="mt-1 flex-row gap-2.5">
               <Button style={{ flex: 1 }} label="Cancelar" variant="ghost" onPress={() => setAbonarGoalId(null)} />
-              <Button style={{ flex: 1 }} label="Abonar" onPress={onAbonar} />
+              <Button style={{ flex: 1 }} label="Abonar" loading={savingAbono} onPress={onAbonar} />
             </View>
           </View>
         </KeyboardAvoidingView>
