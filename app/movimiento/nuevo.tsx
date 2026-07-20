@@ -59,9 +59,9 @@ export default function NuevoMovimiento() {
     await rescheduleReminders({ loggedToday: true, streak: displayStreak(streakState, today) }).catch(() => {});
   }
 
-  async function onNoSpend() {
+  function onNoSpend() {
     const state = logToday(db, today);
-    await afterLog(state);
+    afterLog(state).catch(() => {});
     Alert.alert('¡Listo!', `Día registrado. Racha: ${state.currentStreak} 🔥`);
     router.back();
   }
